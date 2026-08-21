@@ -59,6 +59,7 @@ export default function Clients({ user }) {
 
   useAutoDismiss(notice, setNotice);
   const [form, setForm] = useState(buildInitialForm());
+  const [createOpen, setCreateOpen] = useState(false);
 
   const controls = useListControls({ defaultSort: "createdAt" });
   const { query, statusFilter, sort, order } = controls;
@@ -252,13 +253,24 @@ export default function Clients({ user }) {
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={loadClients}
-                className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-semibold text-white transition hover:bg-white/[0.07]"
-              >
-                Refresh
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={loadClients}
+                  className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-semibold text-white transition hover:bg-white/[0.07]"
+                >
+                  Refresh
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCreateOpen((prev) => !prev)}
+                  aria-expanded={createOpen}
+                  className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white px-3 py-2 text-[11px] font-semibold text-slate-900 transition hover:bg-slate-100"
+                >
+                  {createOpen ? "Close form" : "Add client"}
+                </button>
+              </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -298,8 +310,11 @@ export default function Clients({ user }) {
           </div>
         ) : null}
 
-        <div className="mt-4 grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
-          <div className="rounded-card border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
+        <div className="mt-4 grid gap-4">
+          <div
+            hidden={!createOpen}
+            className="rounded-card border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5"
+          >
             <div className="mb-4">
               <h2 className="text-[15px] font-semibold text-white sm:text-[16px]">
                 Add client account
@@ -309,7 +324,7 @@ export default function Clients({ user }) {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="grid gap-3">
+            <form onSubmit={handleSubmit} className="grid max-w-[880px] gap-3">
               <div className="grid gap-1.5">
                 <label className={labelClass}>Company name</label>
                 <input

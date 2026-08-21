@@ -129,6 +129,7 @@ export default function Tickets({ user }) {
   const { query, statusFilter, sort, order } = controls;
   const priorityFilter = controls.filters.priority;
   const [form, setForm] = useState(buildInitialForm());
+  const [formOpen, setFormOpen] = useState(false);
   const [clientTicketForm, setClientTicketForm] = useState(buildClientTicketForm());
 
   const loadData = useCallback(async (isRefresh = false) => {
@@ -493,6 +494,17 @@ export default function Tickets({ user }) {
                 >
                   {refreshing ? "Refreshing..." : "Refresh"}
                 </button>
+
+                {canCreateTicket(user) ? (
+                  <button
+                    type="button"
+                    onClick={() => setFormOpen((prev) => !prev)}
+                    aria-expanded={formOpen}
+                    className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white px-3 py-2 text-[11px] font-semibold text-slate-900 transition hover:bg-slate-100"
+                  >
+                    {formOpen ? "Close form" : "New ticket"}
+                  </button>
+                ) : null}
               </div>
             </div>
 
@@ -538,14 +550,8 @@ export default function Tickets({ user }) {
           </div>
         ) : null}
 
-        <div
-          className={`mt-4 grid gap-4 ${
-            canCreateTicket(user)
-              ? "xl:grid-cols-[380px_minmax(0,1fr)]"
-              : "xl:grid-cols-1"
-          }`}
-        >
-          {canCreateTicket(user) ? (
+        <div className="mt-4 grid gap-4">
+          {canCreateTicket(user) && formOpen ? (
             <div className="rounded-card border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
               <div className="mb-4">
                 <h2 className="text-[15px] font-semibold text-white sm:text-[16px]">
@@ -557,7 +563,7 @@ export default function Tickets({ user }) {
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="grid gap-3">
+              <form onSubmit={handleSubmit} className="grid max-w-[880px] gap-3">
                 <div className="grid gap-1.5">
                   <label className={labelClass}>Client</label>
                   <select

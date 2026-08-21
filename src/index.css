@@ -12,6 +12,11 @@
  * its own literal.
  */
 @theme {
+  /* Feeds Tailwind's --default-font-family, so the font-sans utility and the
+     preflight default both resolve to Inter too. */
+  --font-sans: "Inter Variable", Inter, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+
   --color-shell: #060b14;
   --color-nav: #08101b;
   --color-auth: #07111f;
