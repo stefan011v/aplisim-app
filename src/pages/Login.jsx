@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 
 const benefits = [
@@ -19,6 +19,11 @@ const benefits = [
 
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const redirectTo = location.state?.from?.pathname
+    ? `${location.state.from.pathname}${location.state.from.search || ""}`
+    : "/";
 
   const [view, setView] = useState("login");
 
@@ -85,7 +90,7 @@ export default function Login({ onLogin }) {
       });
 
       onLogin(data.user);
-      navigate("/");
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
@@ -261,6 +266,13 @@ export default function Login({ onLogin }) {
                     >
                       {loading ? "Signing in..." : "Login"}
                     </button>
+
+                    <Link
+                      to="/forgot-password"
+                      className="text-center text-sm text-slate-400 transition hover:text-white"
+                    >
+                      Forgot your password?
+                    </Link>
                   </form>
 
                   <div className="mt-6 rounded-2xl border border-white/8 bg-white/[0.035] p-4">
