@@ -1,8 +1,5 @@
 import { Link } from "react-router-dom";
-import {
-  ArrowLeftOnRectangleIcon,
-  BellAlertIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowLeftOnRectangleIcon } from "@heroicons/react/24/outline";
 
 export default function SidebarContent({
   sections,
@@ -11,7 +8,6 @@ export default function SidebarContent({
   user,
   onLogout,
   onNavigate,
-  needsAttention = [],
 }) {
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -42,35 +38,6 @@ export default function SidebarContent({
               <MiniShellStat label="Tickets" value={counts.tickets} />
             </>
           )}
-        </div>
-      </div>
-
-      <div className="shrink-0 px-2 py-2">
-        <div className="rounded-xl border border-white/8 bg-slate-950/40 p-2.5">
-          <div className="flex items-center gap-2">
-            <BellAlertIcon className="h-3.5 w-3.5 text-amber-300" />
-            <div className="text-[9px] font-medium uppercase tracking-[0.08em] text-slate-400">
-              Needs attention now
-            </div>
-          </div>
-
-          <div className="mt-2 space-y-1.5">
-            {needsAttention.length > 0 ? (
-              needsAttention.slice(0, 3).map((item) => (
-                <Link
-                  key={item.key}
-                  to={item.to}
-                  className="block rounded-lg border border-white/8 bg-white/[0.03] px-2 py-1.5 text-[10px] leading-4 text-slate-200 transition hover:border-white/10 hover:bg-white/[0.06]"
-                >
-                  {item.label}
-                </Link>
-              ))
-            ) : (
-              <div className="rounded-lg border border-white/8 bg-white/[0.03] px-2 py-1.5 text-[10px] leading-4 text-slate-400">
-                No urgent operational items.
-              </div>
-            )}
-          </div>
         </div>
       </div>
 

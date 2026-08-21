@@ -647,32 +647,9 @@ export default function Dashboard() {
 
               <SectionCard
                 bodyClass=""
-                title="Access requests"
-                description="Pending access flow and latest request activity."
+                title="Latest access requests"
+                description={`${accessRequestStats.open} open of ${accessRequestStats.total} total.`}
               >
-                <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
-                  <CompactTotal
-                    label="Open"
-                    value={accessRequestStats.open}
-                    tone="border-indigo-500/20 bg-indigo-500/10 text-indigo-200"
-                  />
-                  <CompactTotal
-                    label="Reviewing"
-                    value={accessRequestStats.reviewing}
-                    tone="border-amber-500/20 bg-amber-500/10 text-amber-200"
-                  />
-                  <CompactTotal
-                    label="Approved"
-                    value={accessRequestStats.approved}
-                    tone="border-emerald-500/20 bg-emerald-500/10 text-emerald-200"
-                  />
-                  <CompactTotal
-                    label="Rejected"
-                    value={accessRequestStats.rejected}
-                    tone="border-rose-500/20 bg-rose-500/10 text-rose-200"
-                  />
-                </div>
-
                 {topAccessRequests.length ? (
                   <div className="mt-4 grid gap-2.5">
                     {topAccessRequests.map((item) => (

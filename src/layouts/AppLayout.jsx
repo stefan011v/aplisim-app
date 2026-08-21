@@ -96,6 +96,10 @@ export default function AppLayout({ user, onLogout }) {
     [location.pathname, user]
   );
 
+  useEffect(() => {
+    document.title = `${pageTitle} | APLISIM Business Console`;
+  }, [pageTitle]);
+
   const displayName =
     user?.name || user?.fullName || user?.email || "Workspace User";
 
@@ -168,7 +172,6 @@ export default function AppLayout({ user, onLogout }) {
             displayName={displayName}
             user={user}
             onLogout={onLogout}
-            needsAttention={needsAttention}
           />
         </aside>
 
@@ -185,7 +188,7 @@ export default function AppLayout({ user, onLogout }) {
                 </button>
 
                 <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-1.5 text-[9px] uppercase tracking-[0.14em] text-muted">
+                  <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium tracking-[0.02em] text-slate-300">
                     {breadcrumbs.map((crumb, index) => (
                       <Fragment key={crumb.to}>
                         {index > 0 ? <span>/</span> : null}
@@ -199,9 +202,6 @@ export default function AppLayout({ user, onLogout }) {
                     ))}
                   </div>
 
-                  <div className="mt-0.5 text-[18px] font-semibold tracking-[-0.03em] text-white sm:text-[18px]">
-                    {pageTitle}
-                  </div>
                 </div>
               </div>
 
@@ -354,7 +354,6 @@ export default function AppLayout({ user, onLogout }) {
               onLogout={onLogout}
               mobile
               onNavigate={() => setMobileNavOpen(false)}
-              needsAttention={needsAttention}
             />
           </div>
         </div>

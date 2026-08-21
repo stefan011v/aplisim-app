@@ -528,7 +528,7 @@ export default function TicketDetail({ user }) {
                 ) : null}
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 xl:justify-end">
                 <button
                   onClick={() => navigate(-1)}
                   className="h-9 rounded-xl border border-white/10 bg-white/[0.03] px-4 text-[12px] text-white transition hover:bg-white/[0.06]"
