@@ -1,79 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../lib/api";
-
-function formatDate(value) {
-  if (!value) return "—";
-
-  try {
-    return new Date(value).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  } catch {
-    return "—";
-  }
-}
-
-function formatDateTime(value) {
-  if (!value) return "—";
-
-  try {
-    return new Date(value).toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return "—";
-  }
-}
-
-function prettyTicketStatus(value) {
-  switch (value) {
-    case "in_progress":
-      return "In progress";
-    case "waiting_client":
-      return "Waiting for you";
-    case "resolved":
-      return "Resolved";
-    case "closed":
-      return "Closed";
-    default:
-      return "New";
-  }
-}
-
-function prettyTicketPriority(value) {
-  switch (value) {
-    case "urgent":
-      return "Urgent";
-    case "high":
-      return "High";
-    case "low":
-      return "Low";
-    default:
-      return "Medium";
-  }
-}
-
-function statusClasses(status) {
-  switch (status) {
-    case "resolved":
-      return "border-emerald-500/20 bg-emerald-500/10 text-emerald-200";
-    case "closed":
-      return "border-slate-500/20 bg-slate-500/10 text-slate-300";
-    case "in_progress":
-      return "border-sky-500/20 bg-sky-500/10 text-sky-200";
-    case "waiting_client":
-      return "border-amber-500/20 bg-amber-500/10 text-amber-200";
-    default:
-      return "border-indigo-500/20 bg-indigo-500/10 text-indigo-200";
-  }
-}
+import {
+  prettyTicketPriority,
+  prettyTicketStatus,
+  ticketStatusClasses,
+} from "../lib/domain";
+import { CompactTotal, HeroStat, MiniInfo, SectionCard } from "../components/ui";
+import { formatDateTime } from "../lib/format";
 
 function priorityClasses(priority) {
   switch (priority) {
@@ -456,6 +390,7 @@ export default function ClientDashboard({ user }) {
           <div className="mt-4 grid gap-4 xl:grid-cols-[1.08fr_0.92fr]">
             <div className="grid gap-4">
               <SectionCard
+                bodyClass=""
                 title="My open requests"
                 description="Your current support items that are still active."
               >
@@ -479,7 +414,7 @@ export default function ClientDashboard({ user }) {
 
                           <div className="flex flex-col items-end gap-2">
                             <span
-                              className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${statusClasses(
+                              className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${ticketStatusClasses(
                                 ticket.status
                               )}`}
                             >
@@ -513,6 +448,7 @@ export default function ClientDashboard({ user }) {
               </SectionCard>
 
               <SectionCard
+                bodyClass=""
                 title="Recent activity"
                 description="Latest changes across your support requests."
               >
@@ -536,6 +472,7 @@ export default function ClientDashboard({ user }) {
 
             <div className="grid gap-4">
               <SectionCard
+                bodyClass=""
                 title="Account overview"
                 description="Your main account and support details."
               >
@@ -568,6 +505,7 @@ export default function ClientDashboard({ user }) {
               </SectionCard>
 
               <SectionCard
+                bodyClass=""
                 title="Quick actions"
                 description="Fast paths to common client actions."
               >
@@ -591,6 +529,7 @@ export default function ClientDashboard({ user }) {
               </SectionCard>
 
               <SectionCard
+                bodyClass=""
                 title="Support summary"
                 description="A quick read of your current support situation."
               >
@@ -618,6 +557,7 @@ export default function ClientDashboard({ user }) {
               </SectionCard>
 
               <SectionCard
+                bodyClass=""
                 title="Support info"
                 description="How to reach support and what to expect."
               >
@@ -763,36 +703,6 @@ export default function ClientDashboard({ user }) {
   );
 }
 
-function SectionCard({ title, description, children }) {
-  return (
-    <div className="rounded-[20px] border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
-      <div>
-        <h2 className="text-[14px] font-semibold tracking-[-0.02em] text-white sm:text-[15px]">
-          {title}
-        </h2>
-        <p className="mt-1 text-[11px] leading-5 text-slate-400 sm:text-[12px]">
-          {description}
-        </p>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function HeroStat({ label, value, hint }) {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-      <div className="text-[10px] uppercase tracking-[0.12em] text-slate-400">
-        {label}
-      </div>
-      <div className="mt-2 text-[24px] font-semibold tracking-[-0.04em] text-white">
-        {value}
-      </div>
-      <div className="mt-1 text-[11px] text-slate-500">{hint}</div>
-    </div>
-  );
-}
-
 function TimelineRow({ item, isLast }) {
   return (
     <div className="relative pl-8">
@@ -823,34 +733,6 @@ function TimelineRow({ item, isLast }) {
           </div>
         </div>
       </Link>
-    </div>
-  );
-}
-
-function MiniInfo({ label, value }) {
-  return (
-    <div className="rounded-xl border border-white/6 bg-slate-950/40 p-3">
-      <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
-        {label}
-      </div>
-      <div className="mt-1 break-words text-[12px] text-slate-200">
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function CompactTotal({ label, value, tone = "" }) {
-  return (
-    <div
-      className={`rounded-xl border px-3 py-3 ${
-        tone || "border-white/6 bg-slate-950/50"
-      }`}
-    >
-      <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
-        {label}
-      </div>
-      <div className="mt-1 text-[18px] font-semibold text-white">{value}</div>
     </div>
   );
 }

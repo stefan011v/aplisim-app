@@ -1,142 +1,27 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiFetch } from "../lib/api";
-
-const statusOptions = [
-  { value: "new", label: "New" },
-  { value: "contacted", label: "Contacted" },
-  { value: "qualified", label: "Qualified" },
-  { value: "proposal_sent", label: "Proposal sent" },
-  { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-];
-
-const sourceOptions = [
-  { value: "website", label: "Website" },
-  { value: "instagram", label: "Instagram" },
-  { value: "facebook", label: "Facebook" },
-  { value: "linkedin", label: "LinkedIn" },
-  { value: "referral", label: "Referral" },
-  { value: "email", label: "Email" },
-  { value: "other", label: "Other" },
-];
-
-const proposalStatusOptions = [
-  { value: "", label: "No proposal" },
-  { value: "draft", label: "Draft" },
-  { value: "sent", label: "Sent" },
-  { value: "accepted", label: "Accepted" },
-  { value: "rejected", label: "Rejected" },
-];
-
-function prettyStatus(value) {
-  return statusOptions.find((item) => item.value === value)?.label || value || "—";
-}
-
-function prettySource(value) {
-  return sourceOptions.find((item) => item.value === value)?.label || value || "—";
-}
-
-function prettyProposalStatus(value) {
-  return (
-    proposalStatusOptions.find((item) => item.value === value)?.label ||
-    value ||
-    "—"
-  );
-}
-
-function statusClasses(status) {
-  switch (status) {
-    case "won":
-      return "border-emerald-500/20 bg-emerald-500/10 text-emerald-200";
-    case "qualified":
-      return "border-sky-500/20 bg-sky-500/10 text-sky-200";
-    case "proposal_sent":
-      return "border-violet-500/20 bg-violet-500/10 text-violet-200";
-    case "contacted":
-      return "border-amber-500/20 bg-amber-500/10 text-amber-200";
-    case "lost":
-      return "border-rose-500/20 bg-rose-500/10 text-rose-200";
-    default:
-      return "border-indigo-500/20 bg-indigo-500/10 text-indigo-200";
-  }
-}
-
-function stageHealth(status) {
-  switch (status) {
-    case "won":
-      return {
-        label: "Converted-ready",
-        tone: "emerald",
-        note: "This opportunity is in a winning state and ready for conversion or follow-through.",
-      };
-    case "proposal_sent":
-      return {
-        label: "Hot",
-        tone: "violet",
-        note: "Proposal is already sent, so this lead is in a strong commercial stage.",
-      };
-    case "qualified":
-      return {
-        label: "Strong",
-        tone: "sky",
-        note: "Qualified opportunity with real potential and enough context for next commercial move.",
-      };
-    case "contacted":
-      return {
-        label: "Warming",
-        tone: "amber",
-        note: "Initial communication has started, but the lead still needs more structure or proposal work.",
-      };
-    case "lost":
-      return {
-        label: "Closed lost",
-        tone: "rose",
-        note: "This opportunity is no longer active and should remain only as commercial history.",
-      };
-    default:
-      return {
-        label: "Early",
-        tone: "indigo",
-        note: "New lead that still needs qualification and discovery work.",
-      };
-    }
-}
-
-function healthClasses(tone) {
-  switch (tone) {
-    case "emerald":
-      return "border-emerald-500/20 bg-emerald-500/10 text-emerald-200";
-    case "violet":
-      return "border-violet-500/20 bg-violet-500/10 text-violet-200";
-    case "sky":
-      return "border-sky-500/20 bg-sky-500/10 text-sky-200";
-    case "amber":
-      return "border-amber-500/20 bg-amber-500/10 text-amber-200";
-    case "rose":
-      return "border-rose-500/20 bg-rose-500/10 text-rose-200";
-    default:
-      return "border-indigo-500/20 bg-indigo-500/10 text-indigo-200";
-  }
-}
-
-function formatDate(value) {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString();
-}
-
-function formatCurrency(value) {
-  if (value == null || value === "") return "—";
-  return `€${Number(value).toLocaleString("en-GB")}`;
-}
+import { isAdmin } from "../lib/roles";
+import {
+  leadSourceOptions,
+  leadStageHealth,
+  leadStatusClasses,
+  leadStatusOptions,
+  prettyLeadSource,
+  prettyLeadStatus,
+  prettyProposalStatus,
+  proposalStatusOptions,
+  toneClasses,
+} from "../lib/domain";
+import { HeaderChip, HeroStat, MiniInfo, Panel } from "../components/ui";
+import { formatCurrency, formatDate } from "../lib/format";
+import { useAutoDismiss } from "../hooks/useAutoDismiss";
 
 function canEditLead(user) {
   return user?.role === "admin" || user?.role === "staff";
 }
 
-function canConvertLead(user) {
+function canDeleteLead(user) {
   return user?.role === "admin";
 }
 
@@ -187,6 +72,9 @@ export default function LeadDetail({ user }) {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+
+  useAutoDismiss(notice, setNotice);
+  const [deleting, setDeleting] = useState(false);
 
   const loadLead = useCallback(
     async (showRefreshState = false) => {
@@ -268,8 +156,30 @@ export default function LeadDetail({ user }) {
     }
   }
 
+  async function handleDeleteLead() {
+    const confirmed = window.confirm(
+      `Delete lead "${lead.title}"? This cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    setDeleting(true);
+    clearMessages();
+
+    try {
+      await apiFetch(`/api/leads/${id}`, { method: "DELETE" });
+
+      navigate("/leads", {
+        state: { notice: `Lead "${lead.title}" deleted successfully.` },
+      });
+    } catch (err) {
+      setError(err.message || "Failed to delete lead");
+      setDeleting(false);
+    }
+  }
+
   async function handleConvert() {
-    if (!canConvertLead(user)) return;
+    if (!isAdmin(user)) return;
 
     try {
       setConverting(true);
@@ -296,7 +206,7 @@ export default function LeadDetail({ user }) {
     }
   }
 
-  const health = useMemo(() => stageHealth(lead?.status), [lead?.status]);
+  const health = useMemo(() => leadStageHealth(lead?.status), [lead?.status]);
 
   return (
     <div className="w-full p-3 text-white sm:p-4 lg:p-5">
@@ -318,11 +228,11 @@ export default function LeadDetail({ user }) {
 
                   {!loading && lead ? (
                     <span
-                      className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${statusClasses(
+                      className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${leadStatusClasses(
                         lead.status
                       )}`}
                     >
-                      {prettyStatus(lead.status)}
+                      {prettyLeadStatus(lead.status)}
                     </span>
                   ) : null}
                 </div>
@@ -339,7 +249,7 @@ export default function LeadDetail({ user }) {
                     />
                     <HeaderChip
                       label="Source"
-                      value={prettySource(lead.source)}
+                      value={prettyLeadSource(lead.source)}
                     />
                     <HeaderChip
                       label="Contact"
@@ -387,6 +297,16 @@ export default function LeadDetail({ user }) {
                     className="h-9 rounded-xl border border-white/10 bg-white px-4 text-[12px] font-semibold text-slate-900 transition hover:bg-slate-100"
                   >
                     Edit lead
+                  </button>
+                ) : null}
+
+                {!loading && lead && canDeleteLead(user) ? (
+                  <button
+                    onClick={handleDeleteLead}
+                    disabled={deleting}
+                    className="h-9 rounded-xl border border-red-500/25 bg-red-500/10 px-4 text-[12px] font-medium text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {deleting ? "Deleting..." : "Delete lead"}
                   </button>
                 ) : null}
               </div>
@@ -438,7 +358,7 @@ export default function LeadDetail({ user }) {
         ) : lead && form ? (
           <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
             <div className="grid gap-4">
-              <SectionCard>
+              <Panel>
                 {!editing ? (
                   <>
                     <div className="flex flex-wrap items-start justify-between gap-4">
@@ -457,12 +377,12 @@ export default function LeadDetail({ user }) {
                     </div>
 
                     <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                      <InfoCard label="Company" value={lead.companyName || "—"} />
-                      <InfoCard label="Contact" value={lead.contactName || "—"} />
-                      <InfoCard label="Email" value={lead.email || "—"} />
-                      <InfoCard label="Phone" value={lead.phone || "—"} />
-                      <InfoCard label="Source" value={prettySource(lead.source)} />
-                      <InfoCard
+                      <MiniInfo label="Company" value={lead.companyName || "—"} />
+                      <MiniInfo label="Contact" value={lead.contactName || "—"} />
+                      <MiniInfo label="Email" value={lead.email || "—"} />
+                      <MiniInfo label="Phone" value={lead.phone || "—"} />
+                      <MiniInfo label="Source" value={prettyLeadSource(lead.source)} />
+                      <MiniInfo
                         label="Converted at"
                         value={formatDate(lead.convertedAt)}
                       />
@@ -564,7 +484,7 @@ export default function LeadDetail({ user }) {
                           onChange={handleChange}
                           className={inputClass}
                         >
-                          {sourceOptions.map((item) => (
+                          {leadSourceOptions.map((item) => (
                             <option
                               key={item.value}
                               value={item.value}
@@ -584,7 +504,7 @@ export default function LeadDetail({ user }) {
                           onChange={handleChange}
                           className={inputClass}
                         >
-                          {statusOptions.map((item) => (
+                          {leadStatusOptions.map((item) => (
                             <option
                               key={item.value}
                               value={item.value}
@@ -682,10 +602,10 @@ export default function LeadDetail({ user }) {
                     </div>
                   </form>
                 )}
-              </SectionCard>
+              </Panel>
 
               {!editing ? (
-                <SectionCard>
+                <Panel>
                   <h3 className="text-[15px] font-semibold sm:text-[16px]">
                     Proposal / commercial details
                   </h3>
@@ -694,15 +614,15 @@ export default function LeadDetail({ user }) {
                   </p>
 
                   <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                    <InfoCard
+                    <MiniInfo
                       label="Proposal status"
                       value={prettyProposalStatus(lead.proposalStatus)}
                     />
-                    <InfoCard
+                    <MiniInfo
                       label="Proposal sent"
                       value={formatDate(lead.proposalSentAt)}
                     />
-                    <InfoCard
+                    <MiniInfo
                       label="Proposal amount"
                       value={formatCurrency(lead.proposalAmount)}
                     />
@@ -716,12 +636,12 @@ export default function LeadDetail({ user }) {
                       {lead.proposalNotes || "No proposal notes yet."}
                     </div>
                   </div>
-                </SectionCard>
+                </Panel>
               ) : null}
             </div>
 
             <div className="grid gap-4">
-              <SectionCard compact>
+              <Panel compact>
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="text-[14px] font-semibold sm:text-[15px]">
@@ -733,7 +653,7 @@ export default function LeadDetail({ user }) {
                   </div>
 
                   <span
-                    className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${healthClasses(
+                    className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${toneClasses(
                       health.tone
                     )}`}
                   >
@@ -744,9 +664,9 @@ export default function LeadDetail({ user }) {
                 <p className="mt-4 text-[12px] leading-6 text-slate-300">
                   {health.note}
                 </p>
-              </SectionCard>
+              </Panel>
 
-              <SectionCard compact>
+              <Panel compact>
                 <h3 className="text-[14px] font-semibold sm:text-[15px]">
                   Conversion
                 </h3>
@@ -774,7 +694,7 @@ export default function LeadDetail({ user }) {
                 </div>
 
                 {!lead.clientId ? (
-                  canConvertLead(user) ? (
+                  isAdmin(user) ? (
                     <button
                       onClick={handleConvert}
                       disabled={converting}
@@ -792,9 +712,9 @@ export default function LeadDetail({ user }) {
                     Lead already converted to client.
                   </div>
                 )}
-              </SectionCard>
+              </Panel>
 
-              <SectionCard compact>
+              <Panel compact>
                 <h3 className="text-[14px] font-semibold sm:text-[15px]">
                   Commercial snapshot
                 </h3>
@@ -802,7 +722,7 @@ export default function LeadDetail({ user }) {
                 <div className="mt-3 grid gap-2">
                   <MiniInfo
                     label="Source"
-                    value={prettySource(lead.source)}
+                    value={prettyLeadSource(lead.source)}
                   />
                   <MiniInfo
                     label="Estimated value"
@@ -813,9 +733,9 @@ export default function LeadDetail({ user }) {
                     value={formatCurrency(lead.proposalAmount)}
                   />
                 </div>
-              </SectionCard>
+              </Panel>
 
-              <SectionCard compact>
+              <Panel compact>
                 <h3 className="text-[14px] font-semibold sm:text-[15px]">
                   Recommended next step
                 </h3>
@@ -837,7 +757,7 @@ export default function LeadDetail({ user }) {
                       : "Gather more discovery details and confirm whether this is a real qualified opportunity."}
                   </div>
                 </div>
-              </SectionCard>
+              </Panel>
             </div>
           </div>
         ) : null}
@@ -846,59 +766,3 @@ export default function LeadDetail({ user }) {
   );
 }
 
-function SectionCard({ children, compact = false }) {
-  return (
-    <div
-      className={`rounded-[20px] border border-white/8 bg-slate-900/70 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm ${
-        compact ? "p-4" : "p-4 sm:p-5"
-      }`}
-    >
-      {children}
-    </div>
-  );
-}
-
-function HeroStat({ label, value, hint }) {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-      <div className="text-[10px] uppercase tracking-[0.12em] text-slate-400">
-        {label}
-      </div>
-      <div className="mt-2 text-[24px] font-semibold tracking-[-0.04em] text-white">
-        {value}
-      </div>
-      <div className="mt-1 text-[11px] text-slate-500">{hint}</div>
-    </div>
-  );
-}
-
-function HeaderChip({ label, value }) {
-  return (
-    <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] text-slate-300">
-      <span className="text-slate-500">{label}:</span>{" "}
-      <span className="text-white">{value}</span>
-    </div>
-  );
-}
-
-function InfoCard({ label, value }) {
-  return (
-    <div className="rounded-xl border border-white/6 bg-slate-950/40 p-3">
-      <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
-        {label}
-      </div>
-      <div className="mt-1 break-words text-[12px] text-slate-200">{value}</div>
-    </div>
-  );
-}
-
-function MiniInfo({ label, value }) {
-  return (
-    <div className="rounded-xl border border-white/6 bg-slate-950/40 p-3">
-      <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
-        {label}
-      </div>
-      <div className="mt-1 break-words text-[12px] text-slate-200">{value}</div>
-    </div>
-  );
-}

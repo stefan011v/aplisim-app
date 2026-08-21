@@ -1,88 +1,21 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { apiFetch } from "../lib/api";
-
-const ticketStatusOptions = [
-  { value: "new", label: "New" },
-  { value: "in_progress", label: "In progress" },
-  { value: "waiting_client", label: "Waiting client" },
-  { value: "resolved", label: "Resolved" },
-  { value: "closed", label: "Closed" },
-];
-
-const ticketPriorityOptions = [
-  { value: "low", label: "Low" },
-  { value: "medium", label: "Medium" },
-  { value: "high", label: "High" },
-  { value: "urgent", label: "Urgent" },
-];
-
-const ticketCategoryOptions = [
-  { value: "general", label: "General" },
-  { value: "hardware", label: "Hardware" },
-  { value: "software", label: "Software" },
-  { value: "network", label: "Network" },
-  { value: "access", label: "Access / Login" },
-  { value: "email", label: "Email" },
-  { value: "backup", label: "Backup" },
-  { value: "website", label: "Website" },
-  { value: "crm", label: "CRM" },
-  { value: "server", label: "Server" },
-  { value: "security", label: "Security" },
-  { value: "other", label: "Other" },
-];
-
-function prettyTicketStatus(value) {
-  return (
-    ticketStatusOptions.find((item) => item.value === value)?.label ||
-    value ||
-    "—"
-  );
-}
-
-function prettyTicketPriority(value) {
-  return (
-    ticketPriorityOptions.find((item) => item.value === value)?.label ||
-    value ||
-    "—"
-  );
-}
-
-function prettyTicketCategory(value) {
-  return (
-    ticketCategoryOptions.find((item) => item.value === value)?.label ||
-    value ||
-    "—"
-  );
-}
-
-function ticketStatusClasses(status) {
-  switch (status) {
-    case "resolved":
-      return "border-emerald-500/20 bg-emerald-500/10 text-emerald-200";
-    case "closed":
-      return "border-slate-500/20 bg-slate-500/10 text-slate-300";
-    case "in_progress":
-      return "border-sky-500/20 bg-sky-500/10 text-sky-200";
-    case "waiting_client":
-      return "border-amber-500/20 bg-amber-500/10 text-amber-200";
-    default:
-      return "border-indigo-500/20 bg-indigo-500/10 text-indigo-200";
-  }
-}
-
-function ticketPriorityClasses(priority) {
-  switch (priority) {
-    case "urgent":
-      return "border-rose-500/20 bg-rose-500/10 text-rose-200";
-    case "high":
-      return "border-orange-500/20 bg-orange-500/10 text-orange-200";
-    case "low":
-      return "border-slate-500/20 bg-slate-500/10 text-slate-300";
-    default:
-      return "border-indigo-500/20 bg-indigo-500/10 text-indigo-200";
-  }
-}
+import { apiFetch, apiUrl } from "../lib/api";
+import {
+  prettyTicketCategory,
+  prettyTicketPriority,
+  prettyTicketStatus,
+  ticketCategoryOptions,
+  ticketPriorityClasses,
+  ticketPriorityOptions,
+  ticketStatusClasses,
+  ticketStatusOptions,
+  toneClasses,
+} from "../lib/domain";
+import { EmptyState, HeaderChip, HeroStat, MiniInfo, MiniStat, Panel } from "../components/ui";
+import { isAdmin, isClient } from "../lib/roles";
+import { formatDate, formatDateTime } from "../lib/format";
+import { useAutoDismiss } from "../hooks/useAutoDismiss";
 
 function supportHealth(ticket) {
   if (!ticket) {
@@ -140,37 +73,6 @@ function supportHealth(ticket) {
   };
 }
 
-function healthClasses(tone) {
-  switch (tone) {
-    case "emerald":
-      return "border-emerald-500/20 bg-emerald-500/10 text-emerald-200";
-    case "amber":
-      return "border-amber-500/20 bg-amber-500/10 text-amber-200";
-    case "rose":
-      return "border-rose-500/20 bg-rose-500/10 text-rose-200";
-    case "sky":
-      return "border-sky-500/20 bg-sky-500/10 text-sky-200";
-    case "slate":
-      return "border-slate-500/20 bg-slate-500/10 text-slate-300";
-    default:
-      return "border-indigo-500/20 bg-indigo-500/10 text-indigo-200";
-  }
-}
-
-function formatDate(value) {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString();
-}
-
-function formatDateTime(value) {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleString();
-}
-
 function buildTicketForm(data) {
   return {
     title: data.title || "",
@@ -186,8 +88,8 @@ function buildTicketForm(data) {
   };
 }
 
-function isClient(user) {
-  return user?.role === "client";
+function canManageAttachments(user) {
+  return user?.role === "admin" || user?.role === "staff";
 }
 
 const inputClass =
@@ -197,6 +99,8 @@ const textareaClass =
   "w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
 
 const labelClass = "text-[11px] font-medium text-slate-300";
+
+const POLL_INTERVAL_MS = 30000;
 
 const initialEmailReplyForm = {
   authorName: "Admin",
@@ -230,6 +134,12 @@ export default function TicketDetail({ user }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
+  useAutoDismiss(notice, setNotice);
+  const [newActivity, setNewActivity] = useState(0);
+  const [deletingTicket, setDeletingTicket] = useState(false);
+  const [deletingAttachmentId, setDeletingAttachmentId] = useState(null);
+  const messageCountRef = useRef(null);
+
   const loadTicket = useCallback(
     async (showRefreshState = false) => {
       try {
@@ -239,6 +149,7 @@ export default function TicketDetail({ user }) {
         setError("");
 
         const data = await apiFetch(`/api/tickets/${id}`);
+        messageCountRef.current = data?.messages?.length || 0;
         setTicket(data);
         setForm(buildTicketForm(data));
 
@@ -267,6 +178,40 @@ export default function TicketDetail({ user }) {
   useEffect(() => {
     loadTicket();
   }, [loadTicket]);
+
+  const syncTicket = useCallback(async () => {
+    try {
+      const data = await apiFetch(`/api/tickets/${id}`);
+      const nextCount = data?.messages?.length || 0;
+      const previousCount = messageCountRef.current;
+
+      messageCountRef.current = nextCount;
+
+      if (previousCount !== null && nextCount > previousCount) {
+        setNewActivity((prev) => prev + (nextCount - previousCount));
+      }
+
+      setTicket(data);
+    } catch {
+      // A failed background poll must not disturb the open ticket view.
+    }
+  }, [id]);
+
+  useEffect(() => {
+    function syncIfVisible() {
+      if (document.visibilityState === "visible") {
+        syncTicket();
+      }
+    }
+
+    const interval = window.setInterval(syncIfVisible, POLL_INTERVAL_MS);
+    window.addEventListener("focus", syncIfVisible);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", syncIfVisible);
+    };
+  }, [syncTicket]);
 
   useEffect(() => {
     setMessageForm((prev) => ({
@@ -348,6 +293,8 @@ export default function TicketDetail({ user }) {
         message: messageForm.message,
         isInternal: clientView ? false : messageForm.isInternal,
       };
+
+      setNewActivity(0);
 
       const createdMessage = await apiFetch(`/api/tickets/${id}/messages`, {
         method: "POST",
@@ -444,6 +391,56 @@ export default function TicketDetail({ user }) {
       setError(err.message || "Failed to upload attachment");
     } finally {
       setUploadingAttachment(false);
+    }
+  }
+
+  async function handleDeleteTicket() {
+    const confirmed = window.confirm(
+      `Delete ticket #${ticket.id}? Messages and attachments are removed permanently.`
+    );
+
+    if (!confirmed) return;
+
+    setDeletingTicket(true);
+    clearMessages();
+
+    try {
+      await apiFetch(`/api/tickets/${id}`, { method: "DELETE" });
+
+      navigate("/tickets", {
+        state: { notice: `Ticket #${ticket.id} deleted successfully.` },
+      });
+    } catch (err) {
+      setError(err.message || "Failed to delete ticket");
+      setDeletingTicket(false);
+    }
+  }
+
+  async function handleDeleteAttachment(attachment) {
+    const confirmed = window.confirm(`Delete "${attachment.originalName}"?`);
+
+    if (!confirmed) return;
+
+    setDeletingAttachmentId(attachment.id);
+    clearMessages();
+
+    try {
+      await apiFetch(`/api/tickets/${id}/attachments/${attachment.id}`, {
+        method: "DELETE",
+      });
+
+      setTicket((prev) => ({
+        ...prev,
+        attachments: (prev.attachments || []).filter(
+          (item) => item.id !== attachment.id
+        ),
+      }));
+
+      setNotice("Attachment deleted successfully.");
+    } catch (err) {
+      setError(err.message || "Failed to delete attachment");
+    } finally {
+      setDeletingAttachmentId(null);
     }
   }
 
@@ -548,11 +545,20 @@ export default function TicketDetail({ user }) {
 
                 {!loading && ticket ? (
                   <button
-                    onClick={() => loadTicket(true)}
+                    onClick={() => {
+                      setNewActivity(0);
+                      loadTicket(true);
+                    }}
                     disabled={refreshing}
-                    className="h-9 rounded-xl border border-white/10 bg-white/[0.03] px-4 text-[12px] text-white transition hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-70"
+                    className="relative h-9 rounded-xl border border-white/10 bg-white/[0.03] px-4 text-[12px] text-white transition hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     {refreshing ? "Refreshing..." : "Refresh"}
+
+                    {newActivity > 0 ? (
+                      <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-400 px-1 text-[9px] font-semibold text-slate-900">
+                        {newActivity}
+                      </span>
+                    ) : null}
                   </button>
                 ) : null}
 
@@ -565,6 +571,16 @@ export default function TicketDetail({ user }) {
                     className="h-9 rounded-xl border border-white/10 bg-white px-4 text-[12px] font-semibold text-slate-900 transition hover:bg-slate-100"
                   >
                     Edit ticket
+                  </button>
+                ) : null}
+
+                {isAdmin(user) && !loading && ticket ? (
+                  <button
+                    onClick={handleDeleteTicket}
+                    disabled={deletingTicket}
+                    className="h-9 rounded-xl border border-red-500/25 bg-red-500/10 px-4 text-[12px] font-medium text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {deletingTicket ? "Deleting..." : "Delete ticket"}
                   </button>
                 ) : null}
               </div>
@@ -620,7 +636,7 @@ export default function TicketDetail({ user }) {
         ) : ticket && form ? (
           <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
             <div className="grid gap-4">
-              <SectionCard>
+              <Panel>
                 {!editing || clientView ? (
                   <>
                     <div className="flex flex-wrap items-start justify-between gap-4">
@@ -641,41 +657,41 @@ export default function TicketDetail({ user }) {
                     </div>
 
                     <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                      <InfoCard
+                      <MiniInfo
                         label="Client"
                         value={ticket.client?.companyName || "—"}
                       />
-                      <InfoCard
+                      <MiniInfo
                         label="Contact"
                         value={ticket.contact?.fullName || "No contact"}
                       />
-                      <InfoCard
+                      <MiniInfo
                         label="Category"
                         value={prettyTicketCategory(ticket.category)}
                       />
                       {!clientView ? (
-                        <InfoCard
+                        <MiniInfo
                           label="Assigned to"
                           value={ticket.assignedTo || "Unassigned"}
                         />
                       ) : null}
-                      <InfoCard
+                      <MiniInfo
                         label="Due date"
                         value={formatDate(ticket.dueDate)}
                       />
-                      <InfoCard
+                      <MiniInfo
                         label="First response"
                         value={formatDate(ticket.firstResponseAt)}
                       />
-                      <InfoCard
+                      <MiniInfo
                         label="Resolved at"
                         value={formatDate(ticket.resolvedAt)}
                       />
-                      <InfoCard
+                      <MiniInfo
                         label="Created"
                         value={formatDate(ticket.createdAt)}
                       />
-                      <InfoCard
+                      <MiniInfo
                         label="Updated"
                         value={formatDate(ticket.updatedAt)}
                       />
@@ -853,9 +869,9 @@ export default function TicketDetail({ user }) {
                     </div>
                   </form>
                 )}
-              </SectionCard>
+              </Panel>
 
-              <SectionCard>
+              <Panel>
                 <div>
                   <h3 className="text-[15px] font-semibold sm:text-[16px]">
                     {clientView ? "Conversation" : "Communication workspace"}
@@ -1102,11 +1118,11 @@ export default function TicketDetail({ user }) {
                 ) : (
                   <EmptyState text="No activity yet." />
                 )}
-              </SectionCard>
+              </Panel>
             </div>
 
             <div className="grid gap-4">
-              <SectionCard compact>
+              <Panel compact>
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="text-[14px] font-semibold sm:text-[15px]">
@@ -1118,7 +1134,7 @@ export default function TicketDetail({ user }) {
                   </div>
 
                   <span
-                    className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${healthClasses(
+                    className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${toneClasses(
                       health.tone
                     )}`}
                   >
@@ -1142,9 +1158,9 @@ export default function TicketDetail({ user }) {
                     hint="Current workflow state"
                   />
                 </div>
-              </SectionCard>
+              </Panel>
 
-              <SectionCard compact>
+              <Panel compact>
                 <h3 className="text-[14px] font-semibold sm:text-[15px]">
                   Linked account
                 </h3>
@@ -1172,9 +1188,9 @@ export default function TicketDetail({ user }) {
                     Open client
                   </Link>
                 ) : null}
-              </SectionCard>
+              </Panel>
 
-              <SectionCard compact>
+              <Panel compact>
                 <h3 className="text-[14px] font-semibold sm:text-[15px]">
                   Ticket metrics
                 </h3>
@@ -1197,9 +1213,9 @@ export default function TicketDetail({ user }) {
                     value={formatDate(ticket.updatedAt)}
                   />
                 </div>
-              </SectionCard>
+              </Panel>
 
-              <SectionCard compact>
+              <Panel compact>
                 <div>
                   <h3 className="text-[14px] font-semibold sm:text-[15px]">
                     Attachments
@@ -1248,18 +1264,31 @@ export default function TicketDetail({ user }) {
                           {formatDateTime(attachment.createdAt)}
                         </div>
 
-                        <a
-                          href={`${
-                            import.meta.env?.VITE_API_BASE || "http://localhost:4000"
-                          }/api/tickets/${ticket.id}/attachments/${
-                            attachment.id
-                          }/download`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mt-2.5 inline-flex rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[10px] text-white transition hover:bg-white/[0.06]"
-                        >
-                          Open / download
-                        </a>
+                        <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                          <a
+                            href={apiUrl(
+                              `/api/tickets/${ticket.id}/attachments/${attachment.id}/download`
+                            )}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[10px] text-white transition hover:bg-white/[0.06]"
+                          >
+                            Open / download
+                          </a>
+
+                          {canManageAttachments(user) ? (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteAttachment(attachment)}
+                              disabled={deletingAttachmentId === attachment.id}
+                              className="inline-flex rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-1.5 text-[10px] text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {deletingAttachmentId === attachment.id
+                                ? "Deleting..."
+                                : "Delete"}
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1268,9 +1297,9 @@ export default function TicketDetail({ user }) {
                     No attachments uploaded yet.
                   </div>
                 )}
-              </SectionCard>
+              </Panel>
 
-              <SectionCard compact>
+              <Panel compact>
                 <h3 className="text-[14px] font-semibold sm:text-[15px]">
                   Next action
                 </h3>
@@ -1291,7 +1320,7 @@ export default function TicketDetail({ user }) {
                       : "Continue tracking progress and keep the conversation updated as needed."}
                   </div>
                 </div>
-              </SectionCard>
+              </Panel>
             </div>
           </div>
         ) : null}
@@ -1300,81 +1329,3 @@ export default function TicketDetail({ user }) {
   );
 }
 
-function SectionCard({ children, compact = false }) {
-  return (
-    <div
-      className={`rounded-[20px] border border-white/8 bg-slate-900/70 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm ${
-        compact ? "p-3.5 sm:p-4" : "p-4 sm:p-5"
-      }`}
-    >
-      {children}
-    </div>
-  );
-}
-
-function EmptyState({ text }) {
-  return (
-    <div className="mt-4 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-4 text-[12px] text-slate-400">
-      {text}
-    </div>
-  );
-}
-
-function InfoCard({ label, value }) {
-  return (
-    <div className="rounded-xl border border-white/6 bg-slate-950/40 p-3">
-      <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
-        {label}
-      </div>
-      <div className="mt-1 break-words text-[12px] text-slate-200">
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function HeroStat({ label, value, hint }) {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-      <div className="text-[10px] uppercase tracking-[0.12em] text-slate-400">
-        {label}
-      </div>
-      <div className="mt-2 text-[24px] font-semibold tracking-[-0.04em] text-white">
-        {value}
-      </div>
-      <div className="mt-1 text-[11px] text-slate-500">{hint}</div>
-    </div>
-  );
-}
-
-function HeaderChip({ label, value }) {
-  return (
-    <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] text-slate-300">
-      <span className="text-slate-500">{label}:</span>{" "}
-      <span className="text-white">{value}</span>
-    </div>
-  );
-}
-
-function MiniInfo({ label, value }) {
-  return (
-    <div className="rounded-xl border border-white/6 bg-slate-950/40 p-3">
-      <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
-        {label}
-      </div>
-      <div className="mt-1 break-words text-[12px] text-slate-200">{value}</div>
-    </div>
-  );
-}
-
-function MiniStat({ label, value, hint }) {
-  return (
-    <div className="rounded-xl border border-white/6 bg-slate-950/40 p-3">
-      <div className="text-[11px] text-slate-400">{label}</div>
-      <div className="mt-1 text-[18px] font-semibold leading-none text-white">
-        {value}
-      </div>
-      <div className="mt-1 text-[10px] text-slate-500">{hint}</div>
-    </div>
-  );
-}

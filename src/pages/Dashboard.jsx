@@ -1,22 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../lib/api";
-
-function formatDate(value) {
-  if (!value) return "—";
-
-  try {
-    return new Date(value).toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return "—";
-  }
-}
+import { CompactTotal, HeroStat, SectionCard } from "../components/ui";
+import { formatDateTime } from "../lib/format";
 
 function getLeadStatusTone(status) {
   switch (status) {
@@ -56,34 +42,6 @@ function getLeadStatusTone(status) {
         tone: "border-slate-400/20 bg-slate-400/10 text-slate-200",
         color: "#94a3b8",
       };
-  }
-}
-
-function getTicketStatusTone(status) {
-  switch (status) {
-    case "resolved":
-      return "border-emerald-500/20 bg-emerald-500/10 text-emerald-200";
-    case "closed":
-      return "border-slate-500/20 bg-slate-500/10 text-slate-300";
-    case "in_progress":
-      return "border-sky-500/20 bg-sky-500/10 text-sky-200";
-    case "waiting_client":
-      return "border-amber-500/20 bg-amber-500/10 text-amber-200";
-    default:
-      return "border-indigo-500/20 bg-indigo-500/10 text-indigo-200";
-  }
-}
-
-function getTicketPriorityTone(priority) {
-  switch (priority) {
-    case "urgent":
-      return "border-rose-500/20 bg-rose-500/10 text-rose-200";
-    case "high":
-      return "border-orange-500/20 bg-orange-500/10 text-orange-200";
-    case "low":
-      return "border-slate-500/20 bg-slate-500/10 text-slate-300";
-    default:
-      return "border-indigo-500/20 bg-indigo-500/10 text-indigo-200";
   }
 }
 
@@ -541,6 +499,7 @@ export default function Dashboard() {
           <div className="mt-4 grid gap-4 xl:grid-cols-[1.08fr_0.92fr]">
             <div className="grid gap-4">
               <SectionCard
+                bodyClass=""
                 title="Needs attention now"
                 description="High-signal items that likely need an action soon."
               >
@@ -558,6 +517,7 @@ export default function Dashboard() {
               </SectionCard>
 
               <SectionCard
+                bodyClass=""
                 title="Recent activity"
                 description="Latest movement across clients, leads, tickets and access requests."
               >
@@ -579,6 +539,7 @@ export default function Dashboard() {
               </SectionCard>
 
               <SectionCard
+                bodyClass=""
                 title="Lead breakdown"
                 description="Visual distribution of current lead statuses."
               >
@@ -608,6 +569,7 @@ export default function Dashboard() {
 
             <div className="grid gap-4">
               <SectionCard
+                bodyClass=""
                 title="Operational snapshot"
                 description="Compact signal for what needs attention in support."
               >
@@ -636,6 +598,7 @@ export default function Dashboard() {
               </SectionCard>
 
               <SectionCard
+                bodyClass=""
                 title="Commercial pulse"
                 description="Quick commercial state across the pipeline."
               >
@@ -675,6 +638,7 @@ export default function Dashboard() {
               </SectionCard>
 
               <SectionCard
+                bodyClass=""
                 title="Access requests"
                 description="Pending access flow and latest request activity."
               >
@@ -737,6 +701,7 @@ export default function Dashboard() {
               </SectionCard>
 
               <SectionCard
+                bodyClass=""
                 title="Client health mix"
                 description="Quick read of current account state."
               >
@@ -771,22 +736,6 @@ export default function Dashboard() {
   );
 }
 
-function SectionCard({ title, description, children }) {
-  return (
-    <div className="rounded-[20px] border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
-      <div>
-        <h2 className="text-[14px] font-semibold tracking-[-0.02em] text-white sm:text-[15px]">
-          {title}
-        </h2>
-        <p className="mt-1 text-[11px] leading-5 text-slate-400 sm:text-[12px]">
-          {description}
-        </p>
-      </div>
-      {children}
-    </div>
-  );
-}
-
 function HeroAction({ to, label }) {
   return (
     <Link
@@ -795,20 +744,6 @@ function HeroAction({ to, label }) {
     >
       {label}
     </Link>
-  );
-}
-
-function HeroStat({ label, value, hint }) {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-      <div className="text-[10px] uppercase tracking-[0.12em] text-slate-400">
-        {label}
-      </div>
-      <div className="mt-2 text-[24px] font-semibold tracking-[-0.04em] text-white">
-        {value}
-      </div>
-      <div className="mt-1 text-[11px] text-slate-500">{hint}</div>
-    </div>
   );
 }
 
@@ -861,7 +796,7 @@ function TimelineRow({ item, isLast }) {
           </div>
 
           <div className="text-[9px] text-slate-500 sm:text-[10px]">
-            {formatDate(item.createdAt)}
+            {formatDateTime(item.createdAt)}
           </div>
         </div>
 
@@ -893,21 +828,6 @@ function AttentionRow({ item }) {
         </span>
       </div>
     </Link>
-  );
-}
-
-function CompactTotal({ label, value, tone = "" }) {
-  return (
-    <div
-      className={`rounded-xl border px-3 py-3 ${
-        tone || "border-white/6 bg-slate-950/50"
-      }`}
-    >
-      <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
-        {label}
-      </div>
-      <div className="mt-1 text-[18px] font-semibold text-white">{value}</div>
-    </div>
   );
 }
 

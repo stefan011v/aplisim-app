@@ -1,48 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../lib/api";
-
-function formatDate(value) {
-  if (!value) return "—";
-
-  try {
-    return new Date(value).toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return value;
-  }
-}
-
-function statusClasses(status) {
-  switch (status) {
-    case "approved":
-      return "border-emerald-500/20 bg-emerald-500/10 text-emerald-200";
-    case "rejected":
-      return "border-rose-500/20 bg-rose-500/10 text-rose-200";
-    case "reviewing":
-      return "border-amber-500/20 bg-amber-500/10 text-amber-200";
-    default:
-      return "border-indigo-500/20 bg-indigo-500/10 text-indigo-200";
-  }
-}
-
-function prettyStatus(status) {
-  switch (status) {
-    case "approved":
-      return "Approved";
-    case "rejected":
-      return "Rejected";
-    case "reviewing":
-      return "Reviewing";
-    default:
-      return "New";
-  }
-}
+import { accessStatusClasses, prettyAccessStatus } from "../lib/domain";
+import { formatDateTime } from "../lib/format";
+import { useAutoDismiss } from "../hooks/useAutoDismiss";
 
 function buildHistoryItems(item) {
   const items = [];
@@ -51,7 +12,7 @@ function buildHistoryItems(item) {
     items.push({
       id: "created",
       title: "Request submitted",
-      meta: formatDate(item.createdAt),
+      meta: formatDateTime(item.createdAt),
       tone: "default",
     });
   }
@@ -61,7 +22,7 @@ function buildHistoryItems(item) {
       id: "reviewing",
       title: "Moved to reviewing",
       meta: item.reviewedAt
-        ? `${formatDate(item.reviewedAt)}${
+        ? `${formatDateTime(item.reviewedAt)}${
             item.reviewedBy ? ` • by ${item.reviewedBy}` : ""
           }`
         : item.reviewedBy
@@ -76,7 +37,7 @@ function buildHistoryItems(item) {
       id: "approved",
       title: "Approved",
       meta: item.reviewedAt
-        ? `${formatDate(item.reviewedAt)}${
+        ? `${formatDateTime(item.reviewedAt)}${
             item.reviewedBy ? ` • by ${item.reviewedBy}` : ""
           }`
         : item.reviewedBy
@@ -91,7 +52,7 @@ function buildHistoryItems(item) {
       id: "rejected",
       title: "Rejected",
       meta: item.reviewedAt
-        ? `${formatDate(item.reviewedAt)}${
+        ? `${formatDateTime(item.reviewedAt)}${
             item.reviewedBy ? ` • by ${item.reviewedBy}` : ""
           }`
         : item.reviewedBy
@@ -123,6 +84,8 @@ export default function AccessRequests() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+
+  useAutoDismiss(notice, setNotice);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [actionLoadingId, setActionLoadingId] = useState(null);
@@ -140,7 +103,16 @@ export default function AccessRequests() {
     notes: "",
   });
 
-  async function loadRequests(isRefresh = false) {
+  const selectionRef = useRef({ id: null, drawerOpen: false });
+
+  useEffect(() => {
+    selectionRef.current = {
+      id: selectedRequest?.id ?? null,
+      drawerOpen,
+    };
+  }, [selectedRequest, drawerOpen]);
+
+  const loadRequests = useCallback(async (isRefresh = false) => {
     try {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
@@ -151,13 +123,15 @@ export default function AccessRequests() {
       const data = await apiFetch("/api/access-requests");
       setRequests(data.accessRequests || []);
 
-      if (selectedRequest?.id) {
+      const selection = selectionRef.current;
+
+      if (selection.id) {
         const updatedSelected = (data.accessRequests || []).find(
-          (item) => item.id === selectedRequest.id
+          (item) => item.id === selection.id
         );
         setSelectedRequest(updatedSelected || null);
 
-        if (!updatedSelected && drawerOpen) {
+        if (!updatedSelected && selection.drawerOpen) {
           setDrawerOpen(false);
         }
       }
@@ -167,11 +141,11 @@ export default function AccessRequests() {
       setLoading(false);
       setRefreshing(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     loadRequests();
-  }, []);
+  }, [loadRequests]);
 
   function syncUpdatedRequest(updatedRequest) {
     setRequests((prev) => replaceRequestInList(prev, updatedRequest));
@@ -538,11 +512,11 @@ export default function AccessRequests() {
 
                         <td className="px-4 py-4">
                           <span
-                            className={`inline-flex rounded-full border px-1.5 py-[3px] text-[9px] font-medium leading-none ${statusClasses(
+                            className={`inline-flex rounded-full border px-1.5 py-[3px] text-[9px] font-medium leading-none ${accessStatusClasses(
                               item.status
                             )}`}
                           >
-                            {prettyStatus(item.status)}
+                            {prettyAccessStatus(item.status)}
                           </span>
                         </td>
 
@@ -563,7 +537,7 @@ export default function AccessRequests() {
 
                         <td className="px-4 py-4">
                           <div className="min-w-[145px] text-[12px] text-slate-400">
-                            {formatDate(item.createdAt)}
+                            {formatDateTime(item.createdAt)}
                           </div>
                         </td>
 
@@ -769,17 +743,17 @@ export default function AccessRequests() {
                     label="Status"
                     value={
                       <span
-                        className={`inline-flex rounded-full border px-2 py-1 text-[10px] font-medium ${statusClasses(
+                        className={`inline-flex rounded-full border px-2 py-1 text-[10px] font-medium ${accessStatusClasses(
                           selectedRequest.status
                         )}`}
                       >
-                        {prettyStatus(selectedRequest.status)}
+                        {prettyAccessStatus(selectedRequest.status)}
                       </span>
                     }
                   />
                   <DetailCard
                     label="Submitted"
-                    value={formatDate(selectedRequest.createdAt)}
+                    value={formatDateTime(selectedRequest.createdAt)}
                   />
                   <DetailCard
                     label="Reviewed by"
@@ -787,7 +761,7 @@ export default function AccessRequests() {
                   />
                   <DetailCard
                     label="Reviewed at"
-                    value={formatDate(selectedRequest.reviewedAt)}
+                    value={formatDateTime(selectedRequest.reviewedAt)}
                   />
                   <DetailCard
                     label="Client"
