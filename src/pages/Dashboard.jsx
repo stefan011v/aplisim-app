@@ -440,10 +440,6 @@ export default function Dashboard() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <HeroAction to="/clients" label="Clients" />
-                <HeroAction to="/leads" label="Leads" />
-                <HeroAction to="/tickets" label="Tickets" />
-                <HeroAction to="/access-requests" label="Access Requests" />
                 <button
                   type="button"
                   onClick={() => loadDashboard(true)}
@@ -457,29 +453,36 @@ export default function Dashboard() {
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <HeroStat
+                to="/clients"
                 label="Clients"
                 value={counts.clients}
                 hint={`${clientStats.active} active accounts`}
               />
               <HeroStat
+                to="/leads"
                 label="Leads"
                 value={counts.leads}
                 hint={`${commercialStats.qualified} qualified`}
               />
               <HeroStat
+                to="/tickets"
                 label="Tickets"
                 value={counts.tickets}
                 hint={`${ticketStats.open} open`}
+                accent={ticketStats.urgent > 0}
               />
               <HeroStat
+                to="/clients"
                 label="Contacts"
                 value={counts.contacts}
                 hint="Across all client accounts"
               />
               <HeroStat
+                to="/access-requests"
                 label="Access requests"
                 value={counts.accessRequests}
                 hint={`${accessRequestStats.open} open`}
+                accent={accessRequestStats.open > 0}
               />
             </div>
           </div>
@@ -496,10 +499,11 @@ export default function Dashboard() {
             Loading dashboard...
           </div>
         ) : (
-          <div className="mt-4 grid gap-4 xl:grid-cols-[1.08fr_0.92fr]">
-            <div className="grid gap-4">
+          <div className="mt-4 grid items-start gap-4 xl:grid-cols-[1.08fr_0.92fr]">
+            <div className="grid content-start gap-4">
               <SectionCard
                 bodyClass=""
+                accent={needsAttention.length > 0}
                 title="Needs attention now"
                 description="High-signal items that likely need an action soon."
               >
@@ -567,7 +571,7 @@ export default function Dashboard() {
               </SectionCard>
             </div>
 
-            <div className="grid gap-4">
+            <div className="grid content-start gap-4">
               <SectionCard
                 bodyClass=""
                 title="Operational snapshot"
@@ -578,21 +582,25 @@ export default function Dashboard() {
                     label="New tickets"
                     value={ticketStats.new}
                     hint="Fresh requests"
+                    tone="indigo"
                   />
                   <SnapshotCard
                     label="In progress"
                     value={ticketStats.inProgress}
                     hint="Active operational work"
+                    tone="sky"
                   />
                   <SnapshotCard
                     label="Waiting client"
                     value={ticketStats.waitingClient}
                     hint="Blocked externally"
+                    tone="amber"
                   />
                   <SnapshotCard
                     label="Urgent"
                     value={ticketStats.urgent}
                     hint="High-priority queue"
+                    tone={ticketStats.urgent > 0 ? "rose" : "slate"}
                   />
                 </div>
               </SectionCard>
@@ -736,17 +744,6 @@ export default function Dashboard() {
   );
 }
 
-function HeroAction({ to, label }) {
-  return (
-    <Link
-      to={to}
-      className="inline-flex h-9 items-center rounded-xl border border-white/10 bg-white/[0.04] px-4 text-[12px] font-medium text-white transition hover:bg-white/[0.08]"
-    >
-      {label}
-    </Link>
-  );
-}
-
 function TimelineRow({ item, isLast }) {
   const tone = {
     client: "border-emerald-500/20 bg-emerald-500/10 text-emerald-200",
@@ -831,9 +828,17 @@ function AttentionRow({ item }) {
   );
 }
 
-function SnapshotCard({ label, value, hint }) {
+const SNAPSHOT_TONE = {
+  indigo: "border-indigo-500/20 bg-indigo-500/[0.07]",
+  sky: "border-sky-500/20 bg-sky-500/[0.07]",
+  amber: "border-amber-500/20 bg-amber-500/[0.07]",
+  rose: "border-rose-500/25 bg-rose-500/[0.09]",
+  slate: "border-white/8 bg-slate-950/50",
+};
+
+function SnapshotCard({ label, value, hint, tone = "slate" }) {
   return (
-    <div className="rounded-xl border border-white/8 bg-slate-950/50 p-3">
+    <div className={`rounded-xl border p-3 ${SNAPSHOT_TONE[tone] || SNAPSHOT_TONE.slate}`}>
       <div className="text-[10px] uppercase tracking-[0.08em] text-muted">
         {label}
       </div>

@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export const inputClass =
   "h-9 w-full rounded-xl border border-white/8 bg-field px-3 text-[12px] text-white outline-none placeholder:text-muted transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10";
 
@@ -15,17 +17,43 @@ export const ghostButtonClass =
 export const dangerButtonClass =
   "inline-flex items-center justify-center rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-1.5 text-[11px] font-medium text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60";
 
-export function HeroStat({ label, value, hint }) {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-      <div className="text-[10px] uppercase tracking-[0.12em] text-slate-400">
-        {label}
+export function HeroStat({ label, value, hint, to, accent = false }) {
+  const body = (
+    <>
+      <div className="flex items-center gap-1.5">
+        {accent ? (
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300 shadow-[0_0_10px_rgba(252,211,77,0.8)]" />
+        ) : null}
+        <span className="text-[10px] uppercase tracking-[0.12em] text-slate-400">
+          {label}
+        </span>
       </div>
       <div className="mt-2 text-[24px] font-semibold tracking-[-0.04em] text-white">
         {value}
       </div>
-      <div className="mt-1 text-[11px] text-muted">{hint}</div>
-    </div>
+      <div className="mt-1 flex items-center justify-between gap-2">
+        <span className="text-[11px] text-muted">{hint}</span>
+        {to ? (
+          <span className="text-[11px] text-slate-400 opacity-0 transition group-hover:opacity-100">
+            &rarr;
+          </span>
+        ) : null}
+      </div>
+    </>
+  );
+
+  const shell =
+    "rounded-2xl border border-white/8 bg-white/[0.04] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]";
+
+  if (!to) return <div className={shell}>{body}</div>;
+
+  return (
+    <Link
+      to={to}
+      className={`group block transition hover:border-white/15 hover:bg-white/[0.07] ${shell}`}
+    >
+      {body}
+    </Link>
   );
 }
 
@@ -156,9 +184,21 @@ export function SortHeader({ label, field, sort, order, onSort, align = "left" }
  * bodyClass defaults to the settings-style gap; screens whose children already
  * carry their own top margin pass an empty string to avoid double spacing.
  */
-export function SectionCard({ title, description, children, bodyClass = "mt-4" }) {
+export function SectionCard({
+  title,
+  description,
+  children,
+  bodyClass = "mt-4",
+  accent = false,
+}) {
   return (
-    <div className="rounded-card border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
+    <div
+      className={`rounded-card border p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5 ${
+        accent
+          ? "border-amber-400/25 bg-amber-400/[0.04]"
+          : "border-white/8 bg-slate-900/70"
+      }`}
+    >
       <div>
         <h2 className="text-[14px] font-semibold tracking-[-0.02em] text-white sm:text-[15px]">
           {title}
