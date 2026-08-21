@@ -1,4 +1,28 @@
+/* opsz carries Inter's optical size axis, which matters here because most of
+   the console sits at 9-12px. */
+@import "@fontsource-variable/inter/opsz.css";
 @import "tailwindcss";
+
+/*
+ * Design tokens.
+ *
+ * Surfaces are named for the role they play, not the shade they happen to be.
+ * Before this existed the app carried nine near-identical dark hex values,
+ * including a pair that differed by a single digit, because every screen wrote
+ * its own literal.
+ */
+@theme {
+  --color-shell: #060b14;
+  --color-nav: #08101b;
+  --color-auth: #07111f;
+  --color-field: #0b1220;
+  --color-field-focus: #0d1526;
+
+  --color-muted: #7c8ca2;
+
+  --radius-card: 20px;
+  --radius-shell: 24px;
+}
 
 html,
 body,
@@ -16,11 +40,15 @@ body,
 }
 
 body {
-  background: #08111f;
+  background: var(--color-shell);
   color: #ffffff;
   overflow-x: hidden;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  font-family: "Inter Variable", Inter, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* The type scale leans on tight tracking, which needs Inter's real metrics. */
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
