@@ -1,36 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { apiFetch } from "../lib/api";
+import {
+  prettyTicketCategory,
+  prettyTicketPriority,
+  prettyTicketStatus,
+  ticketCategoryOptions,
+  ticketPriorityClasses,
+  ticketPriorityOptions,
+  ticketStatusClasses,
+  ticketStatusOptions,
+} from "../lib/domain";
+import { isAdmin, isClient } from "../lib/roles";
+import { formatDate } from "../lib/format";
+import { downloadCsv, timestampedFilename } from "../lib/csv";
+import { useAutoDismiss } from "../hooks/useAutoDismiss";
+import { paginate, sortRows, useListControls } from "../hooks/useListControls";
+import Pagination from "../components/Pagination";
+import { HeroStat, ListSkeleton, MiniInfo, SortHeader, ghostButtonClass } from "../components/ui";
 
-const statusOptions = [
-  { value: "new", label: "New" },
-  { value: "in_progress", label: "In progress" },
-  { value: "waiting_client", label: "Waiting client" },
-  { value: "resolved", label: "Resolved" },
-  { value: "closed", label: "Closed" },
-];
-
-const priorityOptions = [
-  { value: "low", label: "Low" },
-  { value: "medium", label: "Medium" },
-  { value: "high", label: "High" },
-  { value: "urgent", label: "Urgent" },
-];
-
-const categoryOptions = [
-  { value: "general", label: "General" },
-  { value: "hardware", label: "Hardware" },
-  { value: "software", label: "Software" },
-  { value: "network", label: "Network" },
-  { value: "access", label: "Access / Login" },
-  { value: "email", label: "Email" },
-  { value: "backup", label: "Backup" },
-  { value: "website", label: "Website" },
-  { value: "crm", label: "CRM" },
-  { value: "server", label: "Server" },
-  { value: "security", label: "Security" },
-  { value: "other", label: "Other" },
-];
+const TICKET_LIST_FILTERS = ["priority"];
 
 function buildInitialForm(settings = null) {
   return {
@@ -55,62 +44,8 @@ function buildClientTicketForm() {
   };
 }
 
-function prettyStatus(value) {
-  return (
-    statusOptions.find((item) => item.value === value)?.label || value || "—"
-  );
-}
-
-function prettyPriority(value) {
-  return (
-    priorityOptions.find((item) => item.value === value)?.label || value || "—"
-  );
-}
-
-function prettyCategory(value) {
-  return (
-    categoryOptions.find((item) => item.value === value)?.label || value || "—"
-  );
-}
-
-function statusClasses(status) {
-  switch (status) {
-    case "resolved":
-      return "border-emerald-500/20 bg-emerald-500/10 text-emerald-200";
-    case "closed":
-      return "border-slate-500/20 bg-slate-500/10 text-slate-300";
-    case "in_progress":
-      return "border-sky-500/20 bg-sky-500/10 text-sky-200";
-    case "waiting_client":
-      return "border-amber-500/20 bg-amber-500/10 text-amber-200";
-    default:
-      return "border-indigo-500/20 bg-indigo-500/10 text-indigo-200";
-  }
-}
-
-function priorityClasses(priority) {
-  switch (priority) {
-    case "urgent":
-      return "border-rose-500/20 bg-rose-500/10 text-rose-200";
-    case "high":
-      return "border-orange-500/20 bg-orange-500/10 text-orange-200";
-    case "low":
-      return "border-slate-500/20 bg-slate-500/10 text-slate-300";
-    default:
-      return "border-indigo-500/20 bg-indigo-500/10 text-indigo-200";
-  }
-}
-
 function canCreateTicket(user) {
   return user?.role === "admin" || user?.role === "staff";
-}
-
-function isAdmin(user) {
-  return user?.role === "admin";
-}
-
-function isClient(user) {
-  return user?.role === "client";
 }
 
 const inputClass =
@@ -120,13 +55,6 @@ const textareaClass =
   "w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
 
 const labelClass = "text-[11px] font-medium text-slate-300";
-
-function formatDate(value) {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString();
-}
 
 function getHealthLabel(ticket) {
   if (ticket.status === "resolved" || ticket.status === "closed") {
@@ -165,6 +93,7 @@ function getHealthLabel(ticket) {
 
 export default function Tickets({ user }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [tickets, setTickets] = useState([]);
   const [clients, setClients] = useState([]);
@@ -177,12 +106,32 @@ export default function Tickets({ user }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+
+  useAutoDismiss(notice, setNotice);
+
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const [bulkSaving, setBulkSaving] = useState(false);
+
+  // Detail screens hand a confirmation back through router state.
+  useEffect(() => {
+    const incomingNotice = location.state?.notice;
+
+    if (incomingNotice) {
+      setNotice(incomingNotice);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.pathname, location.state, navigate]);
+
+  const controls = useListControls({
+    defaultSort: "createdAt",
+    extraFilters: TICKET_LIST_FILTERS,
+  });
+  const { query, statusFilter, sort, order } = controls;
+  const priorityFilter = controls.filters.priority;
   const [form, setForm] = useState(buildInitialForm());
   const [clientTicketForm, setClientTicketForm] = useState(buildClientTicketForm());
 
-  async function loadData(isRefresh = false) {
+  const loadData = useCallback(async (isRefresh = false) => {
     try {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
@@ -235,11 +184,11 @@ export default function Tickets({ user }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }
+  }, [user]);
 
   useEffect(() => {
     loadData();
-  }, [user]);
+  }, [loadData]);
 
   useEffect(() => {
     async function loadContactsForClient() {
@@ -368,9 +317,114 @@ export default function Tickets({ user }) {
       const matchesStatus =
         statusFilter === "all" ? true : ticket.status === statusFilter;
 
-      return matchesQuery && matchesStatus;
+      const matchesPriority =
+        priorityFilter === "all" ? true : ticket.priority === priorityFilter;
+
+      return matchesQuery && matchesStatus && matchesPriority;
     });
-  }, [tickets, query, statusFilter]);
+  }, [tickets, query, statusFilter, priorityFilter]);
+
+  const sortedTickets = useMemo(
+    () => sortRows(filteredTickets, sort, order),
+    [filteredTickets, sort, order]
+  );
+
+  const pageData = useMemo(
+    () => paginate(sortedTickets, controls.page, controls.pageSize),
+    [sortedTickets, controls.page, controls.pageSize]
+  );
+
+  const canBulkEdit = user?.role === "admin" || user?.role === "staff";
+
+  function toggleSelected(id) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectPage() {
+    const pageIds = pageData.items.map((ticket) => ticket.id);
+    const allSelected = pageIds.every((id) => selectedIds.has(id));
+
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+
+      for (const id of pageIds) {
+        if (allSelected) next.delete(id);
+        else next.add(id);
+      }
+
+      return next;
+    });
+  }
+
+  async function applyBulkChange(field, value) {
+    if (!value || !selectedIds.size) return;
+
+    setBulkSaving(true);
+    clearMessages();
+
+    const ids = [...selectedIds];
+
+    const results = await Promise.allSettled(
+      ids.map((id) =>
+        apiFetch(`/api/tickets/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ [field]: value }),
+        })
+      )
+    );
+
+    const updated = new Map();
+    let failed = 0;
+
+    results.forEach((result, index) => {
+      if (result.status === "fulfilled") {
+        updated.set(ids[index], result.value);
+      } else {
+        failed += 1;
+      }
+    });
+
+    if (updated.size) {
+      setTickets((prev) =>
+        prev.map((ticket) => updated.get(ticket.id) || ticket)
+      );
+    }
+
+    setSelectedIds(new Set());
+    setBulkSaving(false);
+
+    if (failed) {
+      setError(`${failed} of ${ids.length} tickets could not be updated.`);
+    }
+
+    if (updated.size) {
+      setNotice(`Updated ${updated.size} ticket${updated.size > 1 ? "s" : ""}.`);
+    }
+  }
+
+  function handleExportCsv() {
+    downloadCsv(
+      timestampedFilename("tickets"),
+      [
+        { label: "Id", value: (row) => row.id },
+        { label: "Title", value: (row) => row.title },
+        { label: "Client", value: (row) => row.client?.companyName },
+        { label: "Contact", value: (row) => row.contact?.fullName },
+        { label: "Status", value: (row) => prettyTicketStatus(row.status) },
+        { label: "Priority", value: (row) => prettyTicketPriority(row.priority) },
+        { label: "Category", value: (row) => prettyTicketCategory(row.category) },
+        { label: "Assigned to", value: (row) => row.assignedTo },
+        { label: "Due date", value: (row) => row.dueDate },
+        { label: "Created", value: (row) => row.createdAt },
+      ],
+      sortedTickets
+    );
+  }
 
   const stats = useMemo(() => {
     return tickets.reduce(
@@ -571,7 +625,7 @@ export default function Tickets({ user }) {
                       onChange={handleChange}
                       className={inputClass}
                     >
-                      {statusOptions.map((item) => (
+                      {ticketStatusOptions.map((item) => (
                         <option
                           key={item.value}
                           value={item.value}
@@ -591,7 +645,7 @@ export default function Tickets({ user }) {
                       onChange={handleChange}
                       className={inputClass}
                     >
-                      {priorityOptions.map((item) => (
+                      {ticketPriorityOptions.map((item) => (
                         <option
                           key={item.value}
                           value={item.value}
@@ -613,7 +667,7 @@ export default function Tickets({ user }) {
                       onChange={handleChange}
                       className={inputClass}
                     >
-                      {categoryOptions.map((item) => (
+                      {ticketCategoryOptions.map((item) => (
                         <option
                           key={item.value}
                           value={item.value}
@@ -678,14 +732,18 @@ export default function Tickets({ user }) {
                   {isClient(user) ? "My ticket board" : "Ticket board"}
                 </h2>
                 <p className="mt-1 text-[11px] text-slate-400 sm:text-[12px]">
-                  Showing {filteredTickets.length} of {tickets.length}
+                  Showing {pageData.from}-{pageData.to} of {pageData.total}
+                  {pageData.total !== tickets.length
+                    ? " (filtered from " + tickets.length + ")"
+                    : ""}
                 </p>
               </div>
 
               <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => controls.setQuery(e.target.value)}
+                  aria-label="Search tickets"
                   placeholder={
                     isClient(user)
                       ? "Search title or request..."
@@ -696,13 +754,14 @@ export default function Tickets({ user }) {
 
                 <select
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
+                  onChange={(e) => controls.setStatusFilter(e.target.value)}
+                  aria-label="Filter by status"
                   className="h-9 rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10"
                 >
                   <option value="all" className="bg-slate-900">
                     All statuses
                   </option>
-                  {statusOptions.map((item) => (
+                  {ticketStatusOptions.map((item) => (
                     <option
                       key={item.value}
                       value={item.value}
@@ -712,39 +771,139 @@ export default function Tickets({ user }) {
                     </option>
                   ))}
                 </select>
+
+                <select
+                  value={priorityFilter}
+                  onChange={(e) => controls.setFilter("priority", e.target.value)}
+                  aria-label="Filter by priority"
+                  className="h-9 rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10"
+                >
+                  <option value="all" className="bg-slate-900">
+                    All priorities
+                  </option>
+                  {ticketPriorityOptions.map((item) => (
+                    <option key={item.value} value={item.value} className="bg-slate-900">
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+
+                {controls.hasActiveFilters ? (
+                  <button type="button" onClick={controls.reset} className={ghostButtonClass}>
+                    Clear filters
+                  </button>
+                ) : null}
+
+                <button
+                  type="button"
+                  onClick={handleExportCsv}
+                  disabled={!sortedTickets.length}
+                  className={ghostButtonClass}
+                >
+                  Export CSV
+                </button>
               </div>
             </div>
 
+            {canBulkEdit && selectedIds.size > 0 ? (
+              <div className="mb-3 flex flex-wrap items-center gap-2 rounded-2xl border border-white/12 bg-white/[0.05] px-3 py-2.5">
+                <span className="text-[11px] text-slate-200">
+                  {selectedIds.size} selected
+                </span>
+
+                <select
+                  value=""
+                  disabled={bulkSaving}
+                  onChange={(e) => applyBulkChange("status", e.target.value)}
+                  aria-label="Set status for selected tickets"
+                  className="h-8 rounded-xl border border-white/8 bg-[#0b1220] px-2 text-[11px] text-white outline-none disabled:opacity-60"
+                >
+                  <option value="">Set status...</option>
+                  {ticketStatusOptions.map((item) => (
+                    <option key={item.value} value={item.value} className="bg-slate-900">
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value=""
+                  disabled={bulkSaving}
+                  onChange={(e) => applyBulkChange("priority", e.target.value)}
+                  aria-label="Set priority for selected tickets"
+                  className="h-8 rounded-xl border border-white/8 bg-[#0b1220] px-2 text-[11px] text-white outline-none disabled:opacity-60"
+                >
+                  <option value="">Set priority...</option>
+                  {ticketPriorityOptions.map((item) => (
+                    <option key={item.value} value={item.value} className="bg-slate-900">
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedIds(new Set())}
+                  disabled={bulkSaving}
+                  className={ghostButtonClass}
+                >
+                  Clear selection
+                </button>
+
+                {bulkSaving ? (
+                  <span className="text-[11px] text-slate-400">Applying...</span>
+                ) : null}
+              </div>
+            ) : null}
+
             <div className="hidden overflow-hidden rounded-2xl border border-white/8 xl:block">
-              <div className="grid grid-cols-[minmax(240px,1.25fr)_minmax(160px,0.95fr)_minmax(150px,0.95fr)_minmax(120px,0.7fr)_minmax(120px,0.7fr)_minmax(110px,0.7fr)_120px] gap-3 bg-white/[0.03] px-4 py-3 text-[10px] uppercase tracking-[0.08em] text-slate-500">
-                <div>Ticket</div>
+              <div className="grid grid-cols-[32px_minmax(240px,1.25fr)_minmax(160px,0.95fr)_minmax(150px,0.95fr)_minmax(120px,0.7fr)_minmax(120px,0.7fr)_minmax(110px,0.7fr)_120px] gap-3 bg-white/[0.03] px-4 py-3 text-[10px] uppercase tracking-[0.08em] text-slate-500">
+                <input
+                  type="checkbox"
+                  aria-label="Select all tickets on this page"
+                  disabled={!canBulkEdit || !pageData.items.length}
+                  checked={
+                    pageData.items.length > 0 &&
+                    pageData.items.every((ticket) => selectedIds.has(ticket.id))
+                  }
+                  onChange={toggleSelectPage}
+                  className="h-3.5 w-3.5 self-center disabled:opacity-30"
+                />
+                <SortHeader label="Ticket" field="title" sort={sort} order={order} onSort={controls.toggleSort} />
                 <div>Client / Contact</div>
                 <div>Category / Assignee</div>
-                <div>Status</div>
-                <div>Priority</div>
-                <div>Health</div>
-                <div>Due</div>
+                <SortHeader label="Status" field="status" sort={sort} order={order} onSort={controls.toggleSort} />
+                <SortHeader label="Priority" field="priority" sort={sort} order={order} onSort={controls.toggleSort} />
+                <SortHeader label="Created" field="createdAt" sort={sort} order={order} onSort={controls.toggleSort} />
+                <SortHeader label="Due" field="dueDate" sort={sort} order={order} onSort={controls.toggleSort} />
               </div>
 
               {loading ? (
-                <div className="px-4 py-6 text-[12px] text-slate-300">
-                  Loading tickets...
-                </div>
-              ) : filteredTickets.length === 0 ? (
+                <ListSkeleton />
+              ) : pageData.items.length === 0 ? (
                 <div className="px-4 py-6 text-[12px] text-slate-300">
                   No tickets found.
                 </div>
               ) : (
                 <div className="divide-y divide-white/6">
-                  {filteredTickets.map((ticket) => {
+                  {pageData.items.map((ticket) => {
                     const health = getHealthLabel(ticket);
 
                     return (
                       <div
                         key={ticket.id}
                         onClick={() => navigate(`/tickets/${ticket.id}`)}
-                        className="grid cursor-pointer grid-cols-[minmax(240px,1.25fr)_minmax(160px,0.95fr)_minmax(150px,0.95fr)_minmax(120px,0.7fr)_minmax(120px,0.7fr)_minmax(110px,0.7fr)_120px] items-center gap-3 px-4 py-3 transition hover:bg-white/[0.04]"
+                        className="grid cursor-pointer grid-cols-[32px_minmax(240px,1.25fr)_minmax(160px,0.95fr)_minmax(150px,0.95fr)_minmax(120px,0.7fr)_minmax(120px,0.7fr)_minmax(110px,0.7fr)_120px] items-center gap-3 px-4 py-3 transition hover:bg-white/[0.04]"
                       >
+                        <input
+                          type="checkbox"
+                          aria-label={`Select ticket #${ticket.id}`}
+                          disabled={!canBulkEdit}
+                          checked={selectedIds.has(ticket.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={() => toggleSelected(ticket.id)}
+                          className="h-3.5 w-3.5 disabled:opacity-30"
+                        />
                         <div className="min-w-0">
                           <div className="truncate text-[13px] font-semibold text-white">
                             {ticket.title}
@@ -765,7 +924,7 @@ export default function Tickets({ user }) {
 
                         <div className="min-w-0">
                           <div className="truncate text-[12px] text-slate-200">
-                            {prettyCategory(ticket.category)}
+                            {prettyTicketCategory(ticket.category)}
                           </div>
                           <div className="mt-1 truncate text-[11px] text-slate-500">
                             {ticket.assignedTo || "Unassigned"}
@@ -774,21 +933,21 @@ export default function Tickets({ user }) {
 
                         <div>
                           <span
-                            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${statusClasses(
+                            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${ticketStatusClasses(
                               ticket.status
                             )}`}
                           >
-                            {prettyStatus(ticket.status)}
+                            {prettyTicketStatus(ticket.status)}
                           </span>
                         </div>
 
                         <div>
                           <span
-                            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${priorityClasses(
+                            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${ticketPriorityClasses(
                               ticket.priority
                             )}`}
                           >
-                            {prettyPriority(ticket.priority)}
+                            {prettyTicketPriority(ticket.priority)}
                           </span>
                         </div>
 
@@ -812,15 +971,13 @@ export default function Tickets({ user }) {
 
             <div className="grid gap-3 xl:hidden">
               {loading ? (
-                <div className="rounded-2xl border border-white/8 bg-slate-950/40 px-4 py-6 text-[12px] text-slate-300">
-                  Loading tickets...
-                </div>
-              ) : filteredTickets.length === 0 ? (
+                <ListSkeleton rows={3} variant="cards" />
+              ) : pageData.items.length === 0 ? (
                 <div className="rounded-2xl border border-white/8 bg-slate-950/40 px-4 py-6 text-[12px] text-slate-300">
                   No tickets found.
                 </div>
               ) : (
-                filteredTickets.map((ticket) => {
+                pageData.items.map((ticket) => {
                   const health = getHealthLabel(ticket);
 
                   return (
@@ -841,18 +998,18 @@ export default function Tickets({ user }) {
 
                         <div className="flex flex-col items-end gap-2">
                           <span
-                            className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${statusClasses(
+                            className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${ticketStatusClasses(
                               ticket.status
                             )}`}
                           >
-                            {prettyStatus(ticket.status)}
+                            {prettyTicketStatus(ticket.status)}
                           </span>
                           <span
-                            className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${priorityClasses(
+                            className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${ticketPriorityClasses(
                               ticket.priority
                             )}`}
                           >
-                            {prettyPriority(ticket.priority)}
+                            {prettyTicketPriority(ticket.priority)}
                           </span>
                         </div>
                       </div>
@@ -864,7 +1021,7 @@ export default function Tickets({ user }) {
                         />
                         <MiniInfo
                           label="Category"
-                          value={prettyCategory(ticket.category)}
+                          value={prettyTicketCategory(ticket.category)}
                         />
                         <MiniInfo
                           label="Assigned to"
@@ -903,6 +1060,17 @@ export default function Tickets({ user }) {
                   );
                 })
               )}
+            </div>
+
+            <div className="mt-4">
+              <Pagination
+                page={pageData.page}
+                totalPages={pageData.totalPages}
+                from={pageData.from}
+                to={pageData.to}
+                total={pageData.total}
+                onChange={controls.setPage}
+              />
             </div>
 
             <div className="mt-3 text-[11px] text-slate-500">
@@ -960,7 +1128,7 @@ export default function Tickets({ user }) {
                         onChange={handleClientTicketChange}
                         className={inputClass}
                       >
-                        {categoryOptions.map((item) => (
+                        {ticketCategoryOptions.map((item) => (
                           <option
                             key={item.value}
                             value={item.value}
@@ -980,7 +1148,7 @@ export default function Tickets({ user }) {
                         onChange={handleClientTicketChange}
                         className={inputClass}
                       >
-                        {priorityOptions.map((item) => (
+                        {ticketPriorityOptions.map((item) => (
                           <option
                             key={item.value}
                             value={item.value}
@@ -1032,29 +1200,3 @@ export default function Tickets({ user }) {
   );
 }
 
-function HeroStat({ label, value, hint }) {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-      <div className="text-[10px] uppercase tracking-[0.12em] text-slate-400">
-        {label}
-      </div>
-      <div className="mt-2 text-[24px] font-semibold tracking-[-0.04em] text-white">
-        {value}
-      </div>
-      <div className="mt-1 text-[11px] text-slate-500">{hint}</div>
-    </div>
-  );
-}
-
-function MiniInfo({ label, value }) {
-  return (
-    <div className="rounded-xl border border-white/6 bg-slate-950/40 p-3">
-      <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
-        {label}
-      </div>
-      <div className="mt-1 break-words text-[12px] text-slate-200">
-        {value}
-      </div>
-    </div>
-  );
-}

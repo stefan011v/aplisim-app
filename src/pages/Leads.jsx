@@ -1,25 +1,22 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { apiFetch } from "../lib/api";
-
-const statusOptions = [
-  { value: "new", label: "New" },
-  { value: "contacted", label: "Contacted" },
-  { value: "qualified", label: "Qualified" },
-  { value: "proposal_sent", label: "Proposal sent" },
-  { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-];
-
-const sourceOptions = [
-  { value: "website", label: "Website" },
-  { value: "instagram", label: "Instagram" },
-  { value: "facebook", label: "Facebook" },
-  { value: "linkedin", label: "LinkedIn" },
-  { value: "referral", label: "Referral" },
-  { value: "email", label: "Email" },
-  { value: "other", label: "Other" },
-];
+import {
+  leadSourceOptions,
+  leadStageHealth,
+  leadStatusClasses,
+  leadStatusOptions,
+  prettyLeadSource,
+  prettyLeadStatus,
+  toneClasses,
+} from "../lib/domain";
+import { isAdmin } from "../lib/roles";
+import { formatCurrency } from "../lib/format";
+import { useAutoDismiss } from "../hooks/useAutoDismiss";
+import { downloadCsv, timestampedFilename } from "../lib/csv";
+import { paginate, sortRows, useListControls } from "../hooks/useListControls";
+import Pagination from "../components/Pagination";
+import { HeroStat, ListSkeleton, MiniInfo, SortHeader, ghostButtonClass } from "../components/ui";
 
 function buildInitialForm(settings = null) {
   return {
@@ -35,35 +32,6 @@ function buildInitialForm(settings = null) {
   };
 }
 
-function prettyStatus(value) {
-  return (
-    statusOptions.find((item) => item.value === value)?.label || value || "—"
-  );
-}
-
-function prettySource(value) {
-  return (
-    sourceOptions.find((item) => item.value === value)?.label || value || "—"
-  );
-}
-
-function statusClasses(status) {
-  switch (status) {
-    case "won":
-      return "border-emerald-500/20 bg-emerald-500/10 text-emerald-200";
-    case "qualified":
-      return "border-sky-500/20 bg-sky-500/10 text-sky-200";
-    case "proposal_sent":
-      return "border-violet-500/20 bg-violet-500/10 text-violet-200";
-    case "contacted":
-      return "border-amber-500/20 bg-amber-500/10 text-amber-200";
-    case "lost":
-      return "border-rose-500/20 bg-rose-500/10 text-rose-200";
-    default:
-      return "border-indigo-500/20 bg-indigo-500/10 text-indigo-200";
-  }
-}
-
 const inputClass =
   "h-9 w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
 
@@ -72,59 +40,13 @@ const textareaClass =
 
 const labelClass = "text-[11px] font-medium text-slate-300";
 
-function formatCurrency(value) {
-  if (value == null || value === "") return "—";
-  return `€${Number(value).toLocaleString("en-GB")}`;
-}
-
-function getStageHealth(status) {
-  switch (status) {
-    case "won":
-      return { label: "Converted", tone: "emerald" };
-    case "proposal_sent":
-      return { label: "Hot", tone: "violet" };
-    case "qualified":
-      return { label: "Strong", tone: "sky" };
-    case "contacted":
-      return { label: "Warming", tone: "amber" };
-    case "lost":
-      return { label: "Closed lost", tone: "rose" };
-    default:
-      return { label: "Early", tone: "indigo" };
-  }
-}
-
-function healthClasses(tone) {
-  switch (tone) {
-    case "emerald":
-      return "border-emerald-500/20 bg-emerald-500/10 text-emerald-200";
-    case "violet":
-      return "border-violet-500/20 bg-violet-500/10 text-violet-200";
-    case "sky":
-      return "border-sky-500/20 bg-sky-500/10 text-sky-200";
-    case "amber":
-      return "border-amber-500/20 bg-amber-500/10 text-amber-200";
-    case "rose":
-      return "border-rose-500/20 bg-rose-500/10 text-rose-200";
-    default:
-      return "border-indigo-500/20 bg-indigo-500/10 text-indigo-200";
-  }
-}
-
-function isAdmin(user) {
-  return user?.role === "admin";
-}
-
 function canCreateLead(user) {
   return user?.role === "admin" || user?.role === "staff";
 }
 
-function canConvertLead(user) {
-  return user?.role === "admin";
-}
-
 export default function Leads({ user }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [leads, setLeads] = useState([]);
   const [settings, setSettings] = useState(null);
@@ -134,11 +56,24 @@ export default function Leads({ user }) {
   const [convertingId, setConvertingId] = useState(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+
+  useAutoDismiss(notice, setNotice);
+
+  // Detail screens hand a confirmation back through router state.
+  useEffect(() => {
+    const incomingNotice = location.state?.notice;
+
+    if (incomingNotice) {
+      setNotice(incomingNotice);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.pathname, location.state, navigate]);
+
+  const controls = useListControls({ defaultSort: "createdAt" });
+  const { query, statusFilter, sort, order } = controls;
   const [form, setForm] = useState(buildInitialForm());
 
-  async function loadLeads(showRefreshState = false) {
+  const loadLeads = useCallback(async (showRefreshState = false) => {
     try {
       if (showRefreshState) setRefreshing(true);
       else setLoading(true);
@@ -177,11 +112,11 @@ export default function Leads({ user }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }
+  }, [user]);
 
   useEffect(() => {
     loadLeads();
-  }, [user]);
+  }, [loadLeads]);
 
   function clearMessages() {
     setError("");
@@ -229,7 +164,7 @@ export default function Leads({ user }) {
   async function handleConvert(e, leadId) {
     e.stopPropagation();
 
-    if (!canConvertLead(user)) return;
+    if (!isAdmin(user)) return;
 
     try {
       setConvertingId(leadId);
@@ -282,6 +217,36 @@ export default function Leads({ user }) {
       return matchesQuery && matchesStatus;
     });
   }, [leads, query, statusFilter]);
+
+  const sortedLeads = useMemo(
+    () => sortRows(filteredLeads, sort, order),
+    [filteredLeads, sort, order]
+  );
+
+  const pageData = useMemo(
+    () => paginate(sortedLeads, controls.page, controls.pageSize),
+    [sortedLeads, controls.page, controls.pageSize]
+  );
+
+  function handleExportCsv() {
+    downloadCsv(
+      timestampedFilename("leads"),
+      [
+        { label: "Title", value: (row) => row.title },
+        { label: "Company", value: (row) => row.companyName },
+        { label: "Contact", value: (row) => row.contactName },
+        { label: "Email", value: (row) => row.email },
+        { label: "Phone", value: (row) => row.phone },
+        { label: "Source", value: (row) => row.source },
+        { label: "Status", value: (row) => prettyLeadStatus(row.status) },
+        { label: "Estimated value", value: (row) => row.estimatedValue ?? "" },
+        { label: "Proposal status", value: (row) => row.proposalStatus },
+        { label: "Converted client", value: (row) => row.client?.companyName },
+        { label: "Created", value: (row) => row.createdAt },
+      ],
+      sortedLeads
+    );
+  }
 
   const stats = useMemo(() => {
     return leads.reduce(
@@ -483,7 +448,7 @@ export default function Leads({ user }) {
                       onChange={handleChange}
                       className={inputClass}
                     >
-                      {sourceOptions.map((item) => (
+                      {leadSourceOptions.map((item) => (
                         <option
                           key={item.value}
                           value={item.value}
@@ -503,7 +468,7 @@ export default function Leads({ user }) {
                       onChange={handleChange}
                       className={inputClass}
                     >
-                      {statusOptions.map((item) => (
+                      {leadStatusOptions.map((item) => (
                         <option
                           key={item.value}
                           value={item.value}
@@ -546,27 +511,32 @@ export default function Leads({ user }) {
                   Lead board
                 </h2>
                 <p className="mt-1 text-[11px] text-slate-400 sm:text-[12px]">
-                  Showing {filteredLeads.length} of {leads.length}
+                  Showing {pageData.from}-{pageData.to} of {pageData.total}
+                  {pageData.total !== leads.length
+                    ? " (filtered from " + leads.length + ")"
+                    : ""}
                 </p>
               </div>
 
               <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => controls.setQuery(e.target.value)}
+                  aria-label="Search leads"
                   placeholder="Search title, company, contact..."
                   className="h-9 w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10 sm:w-[260px]"
                 />
 
                 <select
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
+                  onChange={(e) => controls.setStatusFilter(e.target.value)}
+                  aria-label="Filter by status"
                   className="h-9 rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10"
                 >
                   <option value="all" className="bg-slate-900">
                     All statuses
                   </option>
-                  {statusOptions.map((item) => (
+                  {leadStatusOptions.map((item) => (
                     <option
                       key={item.value}
                       value={item.value}
@@ -576,32 +546,67 @@ export default function Leads({ user }) {
                     </option>
                   ))}
                 </select>
+
+                {controls.hasActiveFilters ? (
+                  <button
+                    type="button"
+                    onClick={controls.reset}
+                    className={ghostButtonClass}
+                  >
+                    Clear filters
+                  </button>
+                ) : null}
+
+                <button
+                  type="button"
+                  onClick={handleExportCsv}
+                  disabled={!sortedLeads.length}
+                  className={ghostButtonClass}
+                >
+                  Export CSV
+                </button>
               </div>
             </div>
 
             <div className="hidden overflow-hidden rounded-2xl border border-white/8 xl:block">
               <div className="grid grid-cols-[minmax(240px,1.35fr)_minmax(120px,0.8fr)_minmax(160px,0.95fr)_minmax(120px,0.75fr)_minmax(110px,0.7fr)_150px_120px] gap-3 bg-white/[0.03] px-4 py-3 text-[10px] uppercase tracking-[0.08em] text-slate-500">
-                <div>Lead</div>
+                <SortHeader
+                  label="Lead"
+                  field="title"
+                  sort={sort}
+                  order={order}
+                  onSort={controls.toggleSort}
+                />
                 <div>Source</div>
                 <div>Contact</div>
-                <div>Status</div>
-                <div>Health</div>
+                <SortHeader
+                  label="Status"
+                  field="status"
+                  sort={sort}
+                  order={order}
+                  onSort={controls.toggleSort}
+                />
+                <SortHeader
+                  label="Value"
+                  field="estimatedValue"
+                  sort={sort}
+                  order={order}
+                  onSort={controls.toggleSort}
+                />
                 <div>Client</div>
                 <div className="text-right">Action</div>
               </div>
 
               {loading ? (
-                <div className="px-4 py-6 text-[12px] text-slate-300">
-                  Loading leads...
-                </div>
-              ) : filteredLeads.length === 0 ? (
+                <ListSkeleton />
+              ) : pageData.items.length === 0 ? (
                 <div className="px-4 py-6 text-[12px] text-slate-300">
                   No leads found.
                 </div>
               ) : (
                 <div className="divide-y divide-white/6">
-                  {filteredLeads.map((lead) => {
-                    const health = getStageHealth(lead.status);
+                  {pageData.items.map((lead) => {
+                    const health = leadStageHealth(lead.status);
 
                     return (
                       <div
@@ -623,7 +628,7 @@ export default function Leads({ user }) {
 
                         <div className="min-w-0">
                           <div className="truncate text-[12px] text-slate-200">
-                            {prettySource(lead.source)}
+                            {prettyLeadSource(lead.source)}
                           </div>
                         </div>
 
@@ -638,17 +643,17 @@ export default function Leads({ user }) {
 
                         <div>
                           <span
-                            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${statusClasses(
+                            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${leadStatusClasses(
                               lead.status
                             )}`}
                           >
-                            {prettyStatus(lead.status)}
+                            {prettyLeadStatus(lead.status)}
                           </span>
                         </div>
 
                         <div>
                           <span
-                            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${healthClasses(
+                            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${toneClasses(
                               health.tone
                             )}`}
                           >
@@ -677,7 +682,7 @@ export default function Leads({ user }) {
                             <span className="text-[11px] text-emerald-300">
                               Converted
                             </span>
-                          ) : canConvertLead(user) ? (
+                          ) : isAdmin(user) ? (
                             <button
                               onClick={(e) => handleConvert(e, lead.id)}
                               disabled={convertingId === lead.id}
@@ -702,16 +707,14 @@ export default function Leads({ user }) {
 
             <div className="grid gap-3 xl:hidden">
               {loading ? (
-                <div className="rounded-2xl border border-white/8 bg-slate-950/40 px-4 py-6 text-[12px] text-slate-300">
-                  Loading leads...
-                </div>
-              ) : filteredLeads.length === 0 ? (
+                <ListSkeleton rows={3} variant="cards" />
+              ) : pageData.items.length === 0 ? (
                 <div className="rounded-2xl border border-white/8 bg-slate-950/40 px-4 py-6 text-[12px] text-slate-300">
                   No leads found.
                 </div>
               ) : (
-                filteredLeads.map((lead) => {
-                  const health = getStageHealth(lead.status);
+                pageData.items.map((lead) => {
+                  const health = leadStageHealth(lead.status);
 
                   return (
                     <div
@@ -734,15 +737,15 @@ export default function Leads({ user }) {
 
                         <div className="flex flex-col items-end gap-2">
                           <span
-                            className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${statusClasses(
+                            className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${leadStatusClasses(
                               lead.status
                             )}`}
                           >
-                            {prettyStatus(lead.status)}
+                            {prettyLeadStatus(lead.status)}
                           </span>
 
                           <span
-                            className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${healthClasses(
+                            className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${toneClasses(
                               health.tone
                             )}`}
                           >
@@ -752,7 +755,7 @@ export default function Leads({ user }) {
                       </div>
 
                       <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                        <MiniInfo label="Source" value={prettySource(lead.source)} />
+                        <MiniInfo label="Source" value={prettyLeadSource(lead.source)} />
                         <MiniInfo
                           label="Contact"
                           value={lead.contactName || "No contact"}
@@ -789,7 +792,7 @@ export default function Leads({ user }) {
                             <span className="text-[11px] text-emerald-300">
                               Converted
                             </span>
-                          ) : canConvertLead(user) ? (
+                          ) : isAdmin(user) ? (
                             <button
                               onClick={(e) => handleConvert(e, lead.id)}
                               disabled={convertingId === lead.id}
@@ -812,6 +815,17 @@ export default function Leads({ user }) {
               )}
             </div>
 
+            <div className="mt-4">
+              <Pagination
+                page={pageData.page}
+                totalPages={pageData.totalPages}
+                from={pageData.from}
+                to={pageData.to}
+                total={pageData.total}
+                onChange={controls.setPage}
+              />
+            </div>
+
             <div className="mt-3 text-[11px] text-slate-500">
               Click any row to open the full lead detail. Convert a won lead
               into a real client account without losing sales history.
@@ -823,29 +837,3 @@ export default function Leads({ user }) {
   );
 }
 
-function HeroStat({ label, value, hint }) {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-      <div className="text-[10px] uppercase tracking-[0.12em] text-slate-400">
-        {label}
-      </div>
-      <div className="mt-2 text-[24px] font-semibold tracking-[-0.04em] text-white">
-        {value}
-      </div>
-      <div className="mt-1 text-[11px] text-slate-500">{hint}</div>
-    </div>
-  );
-}
-
-function MiniInfo({ label, value }) {
-  return (
-    <div className="rounded-xl border border-white/6 bg-slate-950/40 p-3">
-      <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
-        {label}
-      </div>
-      <div className="mt-1 break-words text-[12px] text-slate-200">
-        {value}
-      </div>
-    </div>
-  );
-}

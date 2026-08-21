@@ -1,20 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { apiFetch } from "../lib/api";
+import {
+  clientHealth,
+  clientServiceOptions,
+  clientStatusClasses,
+  clientStatusOptions,
+  prettyClientService,
+  prettyClientStatus,
+  toneClasses,
+} from "../lib/domain";
+import { isAdmin, isClient } from "../lib/roles";
+import { useAutoDismiss } from "../hooks/useAutoDismiss";
+import { downloadCsv, timestampedFilename } from "../lib/csv";
+import {
+  paginate,
+  sortRows,
+  useListControls,
+} from "../hooks/useListControls";
+import Pagination from "../components/Pagination";
+import { HeroStat, ListSkeleton, MiniInfo, SortHeader, ghostButtonClass } from "../components/ui";
 
-const serviceOptions = [
-  { value: "web-app-development", label: "Web & App Development" },
-  { value: "help-desk-it-ops", label: "Help Desk & IT Ops" },
-  { value: "crm-integrations", label: "CRM & Integrations" },
-  { value: "ai-automation", label: "AI Automation" },
-];
-
-const statusOptions = [
-  { value: "prospect", label: "Prospect" },
-  { value: "active", label: "Active" },
-  { value: "paused", label: "Paused" },
-  { value: "closed", label: "Closed" },
-];
 
 function buildInitialForm(settings = null) {
   return {
@@ -32,31 +38,6 @@ function buildInitialForm(settings = null) {
   };
 }
 
-function prettyService(value) {
-  return (
-    serviceOptions.find((item) => item.value === value)?.label || value || "—"
-  );
-}
-
-function prettyStatus(value) {
-  return (
-    statusOptions.find((item) => item.value === value)?.label || value || "—"
-  );
-}
-
-function statusClasses(status) {
-  switch (status) {
-    case "active":
-      return "border-emerald-500/20 bg-emerald-500/10 text-emerald-200";
-    case "paused":
-      return "border-amber-500/20 bg-amber-500/10 text-amber-200";
-    case "closed":
-      return "border-slate-500/20 bg-slate-500/10 text-slate-300";
-    default:
-      return "border-indigo-500/20 bg-indigo-500/10 text-indigo-200";
-  }
-}
-
 const inputClass =
   "h-9 w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
 
@@ -64,38 +45,6 @@ const textareaClass =
   "w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
 
 const labelClass = "text-[11px] font-medium text-slate-300";
-
-function getHealth(client) {
-  if (!client) return { label: "—", tone: "default" };
-
-  switch (client.status) {
-    case "active":
-      return { label: "Healthy", tone: "emerald" };
-    case "paused":
-      return { label: "Review", tone: "amber" };
-    case "closed":
-      return { label: "Closed", tone: "slate" };
-    default:
-      return { label: "Early stage", tone: "indigo" };
-  }
-}
-
-function healthClasses(tone) {
-  switch (tone) {
-    case "emerald":
-      return "border-emerald-500/20 bg-emerald-500/10 text-emerald-200";
-    case "amber":
-      return "border-amber-500/20 bg-amber-500/10 text-amber-200";
-    case "slate":
-      return "border-slate-500/20 bg-slate-500/10 text-slate-300";
-    default:
-      return "border-indigo-500/20 bg-indigo-500/10 text-indigo-200";
-  }
-}
-
-function isClient(user) {
-  return user?.role === "client";
-}
 
 export default function Clients({ user }) {
   const location = useLocation();
@@ -107,9 +56,12 @@ export default function Clients({ user }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+
+  useAutoDismiss(notice, setNotice);
   const [form, setForm] = useState(buildInitialForm());
+
+  const controls = useListControls({ defaultSort: "createdAt" });
+  const { query, statusFilter, sort, order } = controls;
 
   const clientView = isClient(user);
 
@@ -126,29 +78,21 @@ export default function Clients({ user }) {
     }
   }, [location.pathname, location.state, navigate]);
 
-  if (clientView && user?.clientId) {
-    return <Navigate to={`/clients/${user.clientId}`} replace />;
-  }
-
-  if (clientView && !user?.clientId) {
-    return (
-      <div className="w-full p-3 text-white sm:p-4 lg:p-5">
-        <div className="mx-auto max-w-[900px] rounded-[20px] border border-red-500/25 bg-red-500/10 p-5 text-[13px] text-red-200">
-          No client account is linked to this user.
-        </div>
-      </div>
-    );
-  }
-
   async function loadClients() {
     try {
       setLoading(true);
       setError("");
 
-      const [clientsData, settingsData] = await Promise.all([
-        apiFetch("/api/clients"),
-        apiFetch("/api/settings"),
-      ]);
+      const requests = [apiFetch("/api/clients")];
+
+      if (isAdmin(user)) {
+        requests.push(apiFetch("/api/settings"));
+      }
+
+      const results = await Promise.all(requests);
+
+      const clientsData = results[0] || [];
+      const settingsData = isAdmin(user) ? results[1] : null;
 
       setClients(clientsData);
       setSettings(settingsData);
@@ -161,8 +105,10 @@ export default function Clients({ user }) {
   }
 
   useEffect(() => {
+    if (clientView) return;
     loadClients();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientView]);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -218,6 +164,35 @@ export default function Clients({ user }) {
     });
   }, [clients, query, statusFilter]);
 
+  const sortedClients = useMemo(
+    () => sortRows(filteredClients, sort, order),
+    [filteredClients, sort, order]
+  );
+
+  const pageData = useMemo(
+    () => paginate(sortedClients, controls.page, controls.pageSize),
+    [sortedClients, controls.page, controls.pageSize]
+  );
+
+  function handleExportCsv() {
+    downloadCsv(
+      timestampedFilename("clients"),
+      [
+        { label: "Company", value: (row) => row.companyName },
+        { label: "Contact", value: (row) => row.contactName },
+        { label: "Email", value: (row) => row.email },
+        { label: "Phone", value: (row) => row.phone },
+        { label: "City", value: (row) => row.city },
+        { label: "Status", value: (row) => prettyClientStatus(row.status) },
+        { label: "Primary service", value: (row) => prettyClientService(row.primaryService) },
+        { label: "Package", value: (row) => row.packageName },
+        { label: "Contacts", value: (row) => row.contacts?.length || 0 },
+        { label: "Created", value: (row) => row.createdAt },
+      ],
+      sortedClients
+    );
+  }
+
   const stats = useMemo(() => {
     return clients.reduce(
       (acc, client) => {
@@ -239,6 +214,20 @@ export default function Clients({ user }) {
       }
     );
   }, [clients]);
+
+  if (clientView && user?.clientId) {
+    return <Navigate to={`/clients/${user.clientId}`} replace />;
+  }
+
+  if (clientView && !user?.clientId) {
+    return (
+      <div className="w-full p-3 text-white sm:p-4 lg:p-5">
+        <div className="mx-auto max-w-[900px] rounded-[20px] border border-red-500/25 bg-red-500/10 p-5 text-[13px] text-red-200">
+          No client account is linked to this user.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full p-3 text-white sm:p-4 lg:p-5">
@@ -400,7 +389,7 @@ export default function Clients({ user }) {
                     onChange={handleChange}
                     className={inputClass}
                   >
-                    {statusOptions.map((item) => (
+                    {clientStatusOptions.map((item) => (
                       <option
                         key={item.value}
                         value={item.value}
@@ -420,7 +409,7 @@ export default function Clients({ user }) {
                     onChange={handleChange}
                     className={inputClass}
                   >
-                    {serviceOptions.map((item) => (
+                    {clientServiceOptions.map((item) => (
                       <option
                         key={item.value}
                         value={item.value}
@@ -473,27 +462,32 @@ export default function Clients({ user }) {
                   Client board
                 </h2>
                 <p className="mt-1 text-[11px] text-slate-400 sm:text-[12px]">
-                  Showing {filteredClients.length} of {clients.length}
+                  Showing {pageData.from}-{pageData.to} of {pageData.total}
+                  {pageData.total !== clients.length
+                    ? " (filtered from " + clients.length + ")"
+                    : ""}
                 </p>
               </div>
 
               <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => controls.setQuery(e.target.value)}
+                  aria-label="Search clients"
                   placeholder="Search company, contact, email..."
                   className="h-9 w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10 sm:w-[260px]"
                 />
 
                 <select
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
+                  onChange={(e) => controls.setStatusFilter(e.target.value)}
+                  aria-label="Filter by status"
                   className="h-9 rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10"
                 >
                   <option value="all" className="bg-slate-900">
                     All statuses
                   </option>
-                  {statusOptions.map((item) => (
+                  {clientStatusOptions.map((item) => (
                     <option
                       key={item.value}
                       value={item.value}
@@ -503,31 +497,66 @@ export default function Clients({ user }) {
                     </option>
                   ))}
                 </select>
+
+                {controls.hasActiveFilters ? (
+                  <button
+                    type="button"
+                    onClick={controls.reset}
+                    className={ghostButtonClass}
+                  >
+                    Clear filters
+                  </button>
+                ) : null}
+
+                <button
+                  type="button"
+                  onClick={handleExportCsv}
+                  disabled={!sortedClients.length}
+                  className={ghostButtonClass}
+                >
+                  Export CSV
+                </button>
               </div>
             </div>
 
             <div className="hidden overflow-hidden rounded-2xl border border-white/8 xl:block">
               <div className="grid grid-cols-[minmax(240px,1.4fr)_minmax(150px,0.95fr)_minmax(160px,0.95fr)_minmax(120px,0.7fr)_minmax(110px,0.7fr)_90px] gap-3 bg-white/[0.03] px-4 py-3 text-[10px] uppercase tracking-[0.08em] text-slate-500">
-                <div>Company</div>
+                <SortHeader
+                  label="Company"
+                  field="companyName"
+                  sort={sort}
+                  order={order}
+                  onSort={controls.toggleSort}
+                />
                 <div>Primary service</div>
                 <div>Contact</div>
-                <div>Status</div>
-                <div>Health</div>
+                <SortHeader
+                  label="Status"
+                  field="status"
+                  sort={sort}
+                  order={order}
+                  onSort={controls.toggleSort}
+                />
+                <SortHeader
+                  label="Created"
+                  field="createdAt"
+                  sort={sort}
+                  order={order}
+                  onSort={controls.toggleSort}
+                />
                 <div className="text-right">Open</div>
               </div>
 
               {loading ? (
-                <div className="px-4 py-6 text-[12px] text-slate-300">
-                  Loading clients...
-                </div>
-              ) : filteredClients.length === 0 ? (
+                <ListSkeleton />
+              ) : pageData.items.length === 0 ? (
                 <div className="px-4 py-6 text-[12px] text-slate-300">
                   No clients found.
                 </div>
               ) : (
                 <div className="divide-y divide-white/6">
-                  {filteredClients.map((client) => {
-                    const health = getHealth(client);
+                  {pageData.items.map((client) => {
+                    const health = clientHealth(client);
 
                     return (
                       <Link
@@ -547,7 +576,7 @@ export default function Clients({ user }) {
 
                         <div className="min-w-0">
                           <div className="truncate text-[12px] text-slate-200">
-                            {prettyService(client.primaryService)}
+                            {prettyClientService(client.primaryService)}
                           </div>
                           <div className="mt-1 truncate text-[11px] text-slate-500">
                             {client.website || "No website"}
@@ -565,17 +594,17 @@ export default function Clients({ user }) {
 
                         <div>
                           <span
-                            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${statusClasses(
+                            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${clientStatusClasses(
                               client.status
                             )}`}
                           >
-                            {prettyStatus(client.status)}
+                            {prettyClientStatus(client.status)}
                           </span>
                         </div>
 
                         <div>
                           <span
-                            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${healthClasses(
+                            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${toneClasses(
                               health.tone
                             )}`}
                           >
@@ -597,16 +626,14 @@ export default function Clients({ user }) {
 
             <div className="grid gap-3 xl:hidden">
               {loading ? (
-                <div className="rounded-2xl border border-white/8 bg-slate-950/40 px-4 py-6 text-[12px] text-slate-300">
-                  Loading clients...
-                </div>
-              ) : filteredClients.length === 0 ? (
+                <ListSkeleton rows={3} variant="cards" />
+              ) : pageData.items.length === 0 ? (
                 <div className="rounded-2xl border border-white/8 bg-slate-950/40 px-4 py-6 text-[12px] text-slate-300">
                   No clients found.
                 </div>
               ) : (
-                filteredClients.map((client) => {
-                  const health = getHealth(client);
+                pageData.items.map((client) => {
+                  const health = clientHealth(client);
 
                   return (
                     <Link
@@ -627,15 +654,15 @@ export default function Clients({ user }) {
 
                         <div className="flex flex-col items-end gap-2">
                           <span
-                            className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${statusClasses(
+                            className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${clientStatusClasses(
                               client.status
                             )}`}
                           >
-                            {prettyStatus(client.status)}
+                            {prettyClientStatus(client.status)}
                           </span>
 
                           <span
-                            className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${healthClasses(
+                            className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${toneClasses(
                               health.tone
                             )}`}
                           >
@@ -647,7 +674,7 @@ export default function Clients({ user }) {
                       <div className="mt-3 grid gap-2 sm:grid-cols-2">
                         <MiniInfo
                           label="Primary service"
-                          value={prettyService(client.primaryService)}
+                          value={prettyClientService(client.primaryService)}
                         />
                         <MiniInfo
                           label="Contact"
@@ -677,6 +704,17 @@ export default function Clients({ user }) {
               )}
             </div>
 
+            <div className="mt-4">
+              <Pagination
+                page={pageData.page}
+                totalPages={pageData.totalPages}
+                from={pageData.from}
+                to={pageData.to}
+                total={pageData.total}
+                onChange={controls.setPage}
+              />
+            </div>
+
             <div className="mt-3 text-[11px] text-slate-500">
               Click any row to open the full client profile and continue into
               contacts, tickets and commercial activity.
@@ -688,29 +726,3 @@ export default function Clients({ user }) {
   );
 }
 
-function HeroStat({ label, value, hint }) {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-      <div className="text-[10px] uppercase tracking-[0.12em] text-slate-400">
-        {label}
-      </div>
-      <div className="mt-2 text-[24px] font-semibold tracking-[-0.04em] text-white">
-        {value}
-      </div>
-      <div className="mt-1 text-[11px] text-slate-500">{hint}</div>
-    </div>
-  );
-}
-
-function MiniInfo({ label, value }) {
-  return (
-    <div className="rounded-xl border border-white/6 bg-slate-950/40 p-3">
-      <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
-        {label}
-      </div>
-      <div className="mt-1 break-words text-[12px] text-slate-200">
-        {value}
-      </div>
-    </div>
-  );
-}
