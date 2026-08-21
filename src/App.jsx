@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import AppRouter from "./routes/AppRouter";
-import { apiFetch } from "./lib/api";
+import { apiFetch, onUnauthorized } from "./lib/api";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -19,6 +19,23 @@ export default function App() {
     }
 
     checkAuth();
+  }, []);
+
+  async function refreshUser() {
+    try {
+      const data = await apiFetch("/api/auth/me");
+      setUser(data.user);
+      return data.user;
+    } catch {
+      return null;
+    }
+  }
+
+  // An expired or revoked session anywhere in the app drops us back to login.
+  useEffect(() => {
+    return onUnauthorized(() => {
+      setUser(null);
+    });
   }, []);
 
   async function handleLogout() {
@@ -49,6 +66,7 @@ export default function App() {
       user={user}
       onLogin={setUser}
       onLogout={handleLogout}
+      onUserRefresh={refreshUser}
     />
   );
 }

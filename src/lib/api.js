@@ -12,6 +12,32 @@ function buildUrl(path) {
   return `${normalizedBase}${normalizedPath}`;
 }
 
+export function apiUrl(path) {
+  return buildUrl(path);
+}
+
+const unauthorizedHandlers = new Set();
+
+export function onUnauthorized(handler) {
+  unauthorizedHandlers.add(handler);
+  return () => unauthorizedHandlers.delete(handler);
+}
+
+// Login failures and the initial session probe are expected 401s, not expiries.
+const SESSION_PROBE_PATHS = ["/api/auth/login", "/api/auth/me", "/api/auth/logout"];
+
+function notifySessionExpired(path) {
+  if (SESSION_PROBE_PATHS.some((probe) => path.startsWith(probe))) return;
+
+  for (const handler of unauthorizedHandlers) {
+    try {
+      handler();
+    } catch (handlerError) {
+      console.error("UNAUTHORIZED_HANDLER_ERROR:", handlerError);
+    }
+  }
+}
+
 export async function apiFetch(path, options = {}) {
   const isFormData = options.body instanceof FormData;
   const hasBody = options.body !== undefined && options.body !== null;
@@ -36,6 +62,10 @@ export async function apiFetch(path, options = {}) {
   }
 
   if (!response.ok) {
+    if (response.status === 401) {
+      notifySessionExpired(path);
+    }
+
     const error = new Error(
       (data && typeof data === "object" && data.message) || "Request failed"
     );
