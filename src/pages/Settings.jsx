@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../lib/api";
+import { formatDate } from "../lib/format";
+import { useAutoDismiss } from "../hooks/useAutoDismiss";
+import ChangePasswordCard from "../components/ChangePasswordCard";
+import InternalUsersCard from "../components/InternalUsersCard";
+import { SectionCard, inputClass, labelClass } from "../components/ui";
 
 const ticketStatusOptions = [
   { value: "new", label: "New" },
@@ -106,11 +111,6 @@ const initialInviteForm = {
   email: "",
 };
 
-const inputClass =
-  "h-9 w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
-
-const labelClass = "text-[11px] font-medium text-slate-300";
-
 function buildSettingsForm(data) {
   return {
     appName: data.appName || "",
@@ -155,21 +155,7 @@ function getOptionLabel(options, value) {
   return options.find((item) => item.value === value)?.label || value || "—";
 }
 
-function formatDate(value) {
-  if (!value) return "—";
-
-  try {
-    return new Date(value).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  } catch {
-    return "—";
-  }
-}
-
-export default function Settings({ user }) {
+export default function Settings({ user, onUserRefresh }) {
   const clientView = user?.role === "client";
 
   const [form, setForm] = useState(initialAdminForm);
@@ -187,6 +173,8 @@ export default function Settings({ user }) {
   const [savingPassword, setSavingPassword] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+
+  useAutoDismiss(notice, setNotice);
 
   const clientAdmin = clientForm.clientPortalRole === "admin";
 
@@ -293,6 +281,12 @@ export default function Settings({ user }) {
       });
 
       setClientForm(buildClientForm(result.settings || {}));
+
+      // Name and email live on the session too, so pull the fresh identity.
+      if (onUserRefresh) {
+        await onUserRefresh();
+      }
+
       setNotice("Account settings updated successfully.");
     } catch (err) {
       setError(err.message || "Failed to update account settings");
@@ -705,55 +699,13 @@ export default function Settings({ user }) {
 
             <div className="grid gap-4">
               {clientAdmin ? (
-                <SectionCard
-                  title="Change password"
+                <ChangePasswordCard
                   description="Only the main client admin can change the portal password here."
-                >
-                  <form onSubmit={handlePasswordSubmit} className="grid gap-3">
-                    <div className="grid gap-1.5">
-                      <label className={labelClass}>Current password</label>
-                      <input
-                        type="password"
-                        name="currentPassword"
-                        value={passwordForm.currentPassword}
-                        onChange={handlePasswordChange}
-                        className={inputClass}
-                      />
-                    </div>
-
-                    <div className="grid gap-1.5">
-                      <label className={labelClass}>New password</label>
-                      <input
-                        type="password"
-                        name="newPassword"
-                        value={passwordForm.newPassword}
-                        onChange={handlePasswordChange}
-                        className={inputClass}
-                      />
-                    </div>
-
-                    <div className="grid gap-1.5">
-                      <label className={labelClass}>Confirm new password</label>
-                      <input
-                        type="password"
-                        name="confirmPassword"
-                        value={passwordForm.confirmPassword}
-                        onChange={handlePasswordChange}
-                        className={inputClass}
-                      />
-                    </div>
-
-                    <div className="pt-2">
-                      <button
-                        type="submit"
-                        disabled={savingPassword}
-                        className="inline-flex items-center justify-center rounded-[12px] border border-white/10 bg-white px-4 py-2 text-[12px] font-semibold text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
-                      >
-                        {savingPassword ? "Saving..." : "Change password"}
-                      </button>
-                    </div>
-                  </form>
-                </SectionCard>
+                  form={passwordForm}
+                  onChange={handlePasswordChange}
+                  onSubmit={handlePasswordSubmit}
+                  saving={savingPassword}
+                />
               ) : (
                 <SectionCard
                   title="Password access"
@@ -792,6 +744,7 @@ export default function Settings({ user }) {
             </div>
           </div>
         ) : (
+          <>
           <form onSubmit={handleSubmit} className="mt-4 grid gap-4">
             <SectionCard
               title="General"
@@ -1046,24 +999,25 @@ export default function Settings({ user }) {
               </div>
             </SectionCard>
           </form>
+
+          <div className="mt-4 grid gap-4">
+            <ChangePasswordCard
+              description="Update the password for your own console account."
+              form={passwordForm}
+              onChange={handlePasswordChange}
+              onSubmit={handlePasswordSubmit}
+              saving={savingPassword}
+            />
+
+            <InternalUsersCard
+              currentUser={user}
+              onError={setError}
+              onNotice={setNotice}
+            />
+          </div>
+          </>
         )}
       </div>
-    </div>
-  );
-}
-
-function SectionCard({ title, description, children }) {
-  return (
-    <div className="rounded-[20px] border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
-      <div>
-        <h2 className="text-[14px] font-semibold tracking-[-0.02em] text-white sm:text-[15px]">
-          {title}
-        </h2>
-        <p className="mt-1 text-[11px] leading-5 text-slate-400 sm:text-[12px]">
-          {description}
-        </p>
-      </div>
-      <div className="mt-4">{children}</div>
     </div>
   );
 }
