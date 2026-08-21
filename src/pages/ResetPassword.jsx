@@ -107,7 +107,7 @@ export default function ResetPassword() {
             onChange={handleChange}
             className={inputClass}
           />
-          <p className="text-[10px] text-slate-500">At least 8 characters.</p>
+          <p className="text-[10px] text-muted">At least 8 characters.</p>
         </div>
 
         <div className="grid gap-1.5">

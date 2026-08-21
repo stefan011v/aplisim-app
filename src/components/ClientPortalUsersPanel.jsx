@@ -152,7 +152,7 @@ export default function ClientPortalUsersPanel({
     {client.users?.length ? (
       <>
         <div className="mt-4 hidden overflow-hidden rounded-2xl border border-white/8 xl:block">
-          <div className="grid grid-cols-[minmax(200px,1fr)_minmax(220px,1fr)_110px_120px_150px_160px] gap-3 bg-white/[0.03] px-4 py-3 text-[10px] uppercase tracking-[0.08em] text-slate-500">
+          <div className="grid grid-cols-[minmax(200px,1fr)_minmax(220px,1fr)_110px_120px_150px_160px] gap-3 bg-white/[0.03] px-4 py-3 text-[10px] uppercase tracking-[0.08em] text-muted">
             <div>Name</div>
             <div>Email</div>
             <div>Role</div>
@@ -238,7 +238,7 @@ export default function ClientPortalUsersPanel({
                     <div className="truncate text-[13px] font-semibold text-white">
                       {portalUser.name || "Unnamed user"}
                     </div>
-                    <div className="mt-1 text-[11px] text-slate-500">
+                    <div className="mt-1 text-[11px] text-muted">
                       {portalUser.email || "—"}
                     </div>
                   </div>

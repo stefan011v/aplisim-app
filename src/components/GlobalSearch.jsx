@@ -247,10 +247,10 @@ export default function GlobalSearch({ user, open, onClose }) {
 
       <div
         ref={panelRef}
-        className="relative w-full max-w-[640px] overflow-hidden rounded-[20px] border border-white/10 bg-[#0b1220] shadow-[0_24px_80px_rgba(0,0,0,0.55)]"
+        className="relative w-full max-w-[640px] overflow-hidden rounded-card border border-white/10 bg-field shadow-[0_24px_80px_rgba(0,0,0,0.55)]"
       >
         <div className="flex items-center gap-2.5 border-b border-white/8 px-4 py-3">
-          <MagnifyingGlassIcon className="h-4 w-4 shrink-0 text-slate-500" />
+          <MagnifyingGlassIcon className="h-4 w-4 shrink-0 text-muted" />
           <input
             ref={inputRef}
             type="text"
@@ -263,9 +263,9 @@ export default function GlobalSearch({ user, open, onClose }) {
                 : "Search clients, leads, tickets, or #id..."
             }
             aria-label="Search query"
-            className="w-full bg-transparent text-[13px] text-white outline-none placeholder:text-slate-500"
+            className="w-full bg-transparent text-[13px] text-white outline-none placeholder:text-muted"
           />
-          <kbd className="hidden shrink-0 rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[9px] text-slate-400 sm:block">
+          <kbd className="hidden shrink-0 rounded-lg border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[9px] text-slate-400 sm:block">
             ESC
           </kbd>
         </div>
@@ -304,7 +304,7 @@ export default function GlobalSearch({ user, open, onClose }) {
 
             return (
               <div key={section.group} className="mb-2 last:mb-0">
-                <div className="px-3 py-1.5 text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                <div className="px-3 py-1.5 text-[9px] uppercase tracking-[0.14em] text-muted">
                   {section.label}
                 </div>
 
@@ -333,7 +333,7 @@ export default function GlobalSearch({ user, open, onClose }) {
                             {entry.title}
                           </div>
                           {entry.subtitle ? (
-                            <div className="truncate text-[10px] text-slate-500">
+                            <div className="truncate text-[10px] text-muted">
                               {entry.subtitle}
                             </div>
                           ) : null}
@@ -353,7 +353,7 @@ export default function GlobalSearch({ user, open, onClose }) {
           })}
         </div>
 
-        <div className="flex items-center justify-between border-t border-white/8 px-4 py-2 text-[9px] text-slate-500">
+        <div className="flex items-center justify-between border-t border-white/8 px-4 py-2 text-[9px] text-muted">
           <span>Arrow keys to navigate, Enter to open</span>
           <span>
             {flatResults.length} result{flatResults.length === 1 ? "" : "s"}

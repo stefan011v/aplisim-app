@@ -244,7 +244,7 @@ export default function ClientOpportunitiesPanel({
     {client.leads?.length ? (
       <>
         <div className="mt-4 hidden overflow-hidden rounded-2xl border border-white/8 xl:block">
-          <div className="grid grid-cols-[minmax(220px,1.2fr)_120px_120px_1fr_120px] gap-3 bg-white/[0.03] px-4 py-3 text-[10px] uppercase tracking-[0.08em] text-slate-500">
+          <div className="grid grid-cols-[minmax(220px,1.2fr)_120px_120px_1fr_120px] gap-3 bg-white/[0.03] px-4 py-3 text-[10px] uppercase tracking-[0.08em] text-muted">
             <div>Opportunity</div>
             <div>Source</div>
             <div>Converted</div>
@@ -273,7 +273,7 @@ export default function ClientOpportunitiesPanel({
                     >
                       {prettyLeadStatus(lead.status)}
                     </span>
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-muted">
                       {lead.contactName || "—"}
                     </span>
                   </div>
@@ -291,7 +291,7 @@ export default function ClientOpportunitiesPanel({
                   <div className="text-[12px] text-slate-200">
                     {prettyProposalStatus(lead.proposalStatus)}
                   </div>
-                  <div className="mt-1 truncate text-[10px] text-slate-500">
+                  <div className="mt-1 truncate text-[10px] text-muted">
                     {lead.proposalSentAt
                       ? `Sent: ${formatDate(lead.proposalSentAt)}`
                       : lead.proposalNotes || "No proposal notes"}
@@ -324,7 +324,7 @@ export default function ClientOpportunitiesPanel({
                   >
                     {lead.title}
                   </Link>
-                  <div className="mt-1 text-[11px] text-slate-500">
+                  <div className="mt-1 text-[11px] text-muted">
                     {lead.contactName || "—"}
                   </div>
                 </div>
@@ -357,8 +357,8 @@ export default function ClientOpportunitiesPanel({
                 />
               </div>
 
-              <div className="mt-3 rounded-xl border border-white/6 bg-black/10 p-3">
-                <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
+              <div className="mt-3 rounded-xl border border-white/8 bg-black/10 p-3">
+                <div className="text-[10px] uppercase tracking-[0.08em] text-muted">
                   Proposal details
                 </div>
                 <div className="mt-1 text-[12px] leading-6 text-slate-300">

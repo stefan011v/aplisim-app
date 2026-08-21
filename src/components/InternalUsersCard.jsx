@@ -188,13 +188,13 @@ export default function InternalUsersCard({ currentUser, onError, onNotice }) {
                       </span>
 
                       {isSelf ? (
-                        <span className="shrink-0 text-[9px] uppercase tracking-[0.08em] text-slate-500">
+                        <span className="shrink-0 text-[9px] uppercase tracking-[0.08em] text-muted">
                           You
                         </span>
                       ) : null}
                     </div>
 
-                    <div className="mt-1 truncate text-[11px] text-slate-500">
+                    <div className="mt-1 truncate text-[11px] text-muted">
                       {user.email}
                     </div>
                   </div>
@@ -205,7 +205,7 @@ export default function InternalUsersCard({ currentUser, onError, onNotice }) {
                       disabled={isSelf || busy}
                       onChange={(e) => handleRoleChange(user, e.target.value)}
                       aria-label={`Role for ${user.name}`}
-                      className="h-8 rounded-xl border border-white/8 bg-[#0b1220] px-2 text-[11px] text-white outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                      className="h-8 rounded-xl border border-white/8 bg-field px-2 text-[11px] text-white outline-none disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {roleOptions.map((option) => (
                         <option key={option.value} value={option.value}>

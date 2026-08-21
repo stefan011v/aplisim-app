@@ -6,7 +6,7 @@ export default function RouteFallback() {
       className="grid min-h-[60vh] w-full place-items-center px-6 py-10"
     >
       <div className="w-full max-w-[900px]">
-        <div className="h-[92px] animate-pulse rounded-[22px] border border-white/8 bg-slate-900/60" />
+        <div className="h-[92px] animate-pulse rounded-card border border-white/8 bg-slate-900/60" />
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[0, 1, 2, 3].map((key) => (
@@ -17,7 +17,7 @@ export default function RouteFallback() {
           ))}
         </div>
 
-        <div className="mt-3 h-[220px] animate-pulse rounded-[20px] border border-white/8 bg-slate-900/50" />
+        <div className="mt-3 h-[220px] animate-pulse rounded-card border border-white/8 bg-slate-900/50" />
 
         <span className="sr-only">Loading screen</span>
       </div>

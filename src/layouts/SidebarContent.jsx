@@ -16,7 +16,7 @@ export default function SidebarContent({
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="shrink-0 border-b border-white/8 px-3 py-3">
-        <div className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[8px] uppercase tracking-[0.16em] text-slate-300">
+        <div className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[9px] uppercase tracking-[0.16em] text-slate-300">
           APLISIM
         </div>
 
@@ -60,13 +60,13 @@ export default function SidebarContent({
                 <Link
                   key={item.key}
                   to={item.to}
-                  className="block rounded-lg border border-white/6 bg-white/[0.03] px-2 py-1.5 text-[10px] leading-4 text-slate-200 transition hover:border-white/12 hover:bg-white/[0.06]"
+                  className="block rounded-lg border border-white/8 bg-white/[0.03] px-2 py-1.5 text-[10px] leading-4 text-slate-200 transition hover:border-white/10 hover:bg-white/[0.06]"
                 >
                   {item.label}
                 </Link>
               ))
             ) : (
-              <div className="rounded-lg border border-white/6 bg-white/[0.03] px-2 py-1.5 text-[10px] leading-4 text-slate-400">
+              <div className="rounded-lg border border-white/8 bg-white/[0.03] px-2 py-1.5 text-[10px] leading-4 text-slate-400">
                 No urgent operational items.
               </div>
             )}
@@ -77,7 +77,7 @@ export default function SidebarContent({
       <div className="flex-1 px-2 py-1">
         {sections.map((section) => (
           <div key={section.title} className="mb-3 last:mb-0">
-            <div className="px-2 text-[9px] uppercase tracking-[0.14em] text-slate-500">
+            <div className="px-2 text-[9px] uppercase tracking-[0.14em] text-muted">
               {section.title}
             </div>
 
@@ -101,7 +101,7 @@ export default function SidebarContent({
                         className={`flex h-7 w-7 items-center justify-center rounded-lg border ${
                           item.isActive
                             ? "border-white/10 bg-white/[0.08]"
-                            : "border-white/6 bg-white/[0.03] group-hover:bg-white/[0.06]"
+                            : "border-white/8 bg-white/[0.03] group-hover:bg-white/[0.06]"
                         }`}
                       >
                         <Icon className="h-3.5 w-3.5" />
@@ -132,11 +132,11 @@ export default function SidebarContent({
 
       <div className="shrink-0 border-t border-white/8 p-2">
         <div className="rounded-xl border border-white/8 bg-white/[0.03] p-2.5">
-          <div className="text-[9px] text-slate-500">Signed in as</div>
+          <div className="text-[9px] text-muted">Signed in as</div>
           <div className="mt-1 truncate text-[10.5px] font-medium text-white">
             {displayName}
           </div>
-          <div className="mt-1 text-[9px] uppercase tracking-[0.08em] text-slate-500">
+          <div className="mt-1 text-[9px] uppercase tracking-[0.08em] text-muted">
             {user?.role || "unknown role"}
           </div>
 
@@ -157,7 +157,7 @@ export default function SidebarContent({
 function MiniShellStat({ label, value }) {
   return (
     <div className="rounded-lg border border-white/8 bg-slate-950/40 px-2 py-1.5">
-      <div className="text-[8px] uppercase tracking-[0.08em] text-slate-500">
+      <div className="text-[9px] uppercase tracking-[0.08em] text-muted">
         {label}
       </div>
       <div className="mt-1 text-[13px] font-semibold leading-none text-white">

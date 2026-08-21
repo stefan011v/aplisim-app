@@ -49,10 +49,10 @@ function canCreateTicket(user) {
 }
 
 const inputClass =
-  "h-9 w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
+  "h-9 w-full rounded-xl border border-white/8 bg-field px-3 text-[12px] text-white outline-none placeholder:text-muted transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10";
 
 const textareaClass =
-  "w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
+  "w-full rounded-xl border border-white/8 bg-field px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-muted transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10";
 
 const labelClass = "text-[11px] font-medium text-slate-300";
 
@@ -453,7 +453,7 @@ export default function Tickets({ user }) {
   return (
     <div className="w-full p-3 text-white sm:p-4 lg:p-5">
       <div className="mx-auto max-w-[1700px]">
-        <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.24)] sm:px-5 sm:py-5">
+        <div className="relative overflow-hidden rounded-shell border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.24)] sm:px-5 sm:py-5">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.07),transparent_30%)]" />
 
           <div className="relative z-10 flex flex-col gap-5">
@@ -479,7 +479,7 @@ export default function Tickets({ user }) {
                   <button
                     type="button"
                     onClick={openCreateModal}
-                    className="inline-flex items-center justify-center rounded-[12px] border border-sky-400/20 bg-sky-500/15 px-3 py-2 text-[11px] font-semibold text-sky-100 transition hover:bg-sky-500/20"
+                    className="inline-flex items-center justify-center rounded-xl border border-sky-400/20 bg-sky-500/15 px-3 py-2 text-[11px] font-semibold text-sky-100 transition hover:bg-sky-500/20"
                   >
                     Open new ticket
                   </button>
@@ -489,7 +489,7 @@ export default function Tickets({ user }) {
                   type="button"
                   onClick={() => loadData(true)}
                   disabled={refreshing}
-                  className="inline-flex items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-semibold text-white transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-semibold text-white transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {refreshing ? "Refreshing..." : "Refresh"}
                 </button>
@@ -546,7 +546,7 @@ export default function Tickets({ user }) {
           }`}
         >
           {canCreateTicket(user) ? (
-            <div className="rounded-[20px] border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
+            <div className="rounded-card border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
               <div className="mb-4">
                 <h2 className="text-[15px] font-semibold text-white sm:text-[16px]">
                   Create ticket
@@ -725,7 +725,7 @@ export default function Tickets({ user }) {
             </div>
           ) : null}
 
-          <div className="rounded-[20px] border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
+          <div className="rounded-card border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
             <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <h2 className="text-[15px] font-semibold text-white sm:text-[16px]">
@@ -749,14 +749,14 @@ export default function Tickets({ user }) {
                       ? "Search title or request..."
                       : "Search title, client, contact..."
                   }
-                  className="h-9 w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10 sm:w-[260px]"
+                  className="h-9 w-full rounded-xl border border-white/8 bg-field px-3 text-[12px] text-white outline-none placeholder:text-muted transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10 sm:w-[260px]"
                 />
 
                 <select
                   value={statusFilter}
                   onChange={(e) => controls.setStatusFilter(e.target.value)}
                   aria-label="Filter by status"
-                  className="h-9 rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10"
+                  className="h-9 rounded-xl border border-white/8 bg-field px-3 text-[12px] text-white outline-none transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10"
                 >
                   <option value="all" className="bg-slate-900">
                     All statuses
@@ -776,7 +776,7 @@ export default function Tickets({ user }) {
                   value={priorityFilter}
                   onChange={(e) => controls.setFilter("priority", e.target.value)}
                   aria-label="Filter by priority"
-                  className="h-9 rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10"
+                  className="h-9 rounded-xl border border-white/8 bg-field px-3 text-[12px] text-white outline-none transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10"
                 >
                   <option value="all" className="bg-slate-900">
                     All priorities
@@ -806,7 +806,7 @@ export default function Tickets({ user }) {
             </div>
 
             {canBulkEdit && selectedIds.size > 0 ? (
-              <div className="mb-3 flex flex-wrap items-center gap-2 rounded-2xl border border-white/12 bg-white/[0.05] px-3 py-2.5">
+              <div className="mb-3 flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.05] px-3 py-2.5">
                 <span className="text-[11px] text-slate-200">
                   {selectedIds.size} selected
                 </span>
@@ -816,7 +816,7 @@ export default function Tickets({ user }) {
                   disabled={bulkSaving}
                   onChange={(e) => applyBulkChange("status", e.target.value)}
                   aria-label="Set status for selected tickets"
-                  className="h-8 rounded-xl border border-white/8 bg-[#0b1220] px-2 text-[11px] text-white outline-none disabled:opacity-60"
+                  className="h-8 rounded-xl border border-white/8 bg-field px-2 text-[11px] text-white outline-none disabled:opacity-60"
                 >
                   <option value="">Set status...</option>
                   {ticketStatusOptions.map((item) => (
@@ -831,7 +831,7 @@ export default function Tickets({ user }) {
                   disabled={bulkSaving}
                   onChange={(e) => applyBulkChange("priority", e.target.value)}
                   aria-label="Set priority for selected tickets"
-                  className="h-8 rounded-xl border border-white/8 bg-[#0b1220] px-2 text-[11px] text-white outline-none disabled:opacity-60"
+                  className="h-8 rounded-xl border border-white/8 bg-field px-2 text-[11px] text-white outline-none disabled:opacity-60"
                 >
                   <option value="">Set priority...</option>
                   {ticketPriorityOptions.map((item) => (
@@ -857,7 +857,7 @@ export default function Tickets({ user }) {
             ) : null}
 
             <div className="hidden overflow-hidden rounded-2xl border border-white/8 xl:block">
-              <div className="grid grid-cols-[32px_minmax(240px,1.25fr)_minmax(160px,0.95fr)_minmax(150px,0.95fr)_minmax(120px,0.7fr)_minmax(120px,0.7fr)_minmax(110px,0.7fr)_120px] gap-3 bg-white/[0.03] px-4 py-3 text-[10px] uppercase tracking-[0.08em] text-slate-500">
+              <div className="grid grid-cols-[32px_minmax(240px,1.25fr)_minmax(160px,0.95fr)_minmax(150px,0.95fr)_minmax(120px,0.7fr)_minmax(120px,0.7fr)_minmax(110px,0.7fr)_120px] gap-3 bg-white/[0.03] px-4 py-3 text-[10px] uppercase tracking-[0.08em] text-muted">
                 <input
                   type="checkbox"
                   aria-label="Select all tickets on this page"
@@ -917,7 +917,7 @@ export default function Tickets({ user }) {
                           <div className="truncate text-[12px] text-slate-200">
                             {ticket.client?.companyName || "—"}
                           </div>
-                          <div className="mt-1 truncate text-[11px] text-slate-500">
+                          <div className="mt-1 truncate text-[11px] text-muted">
                             {ticket.contact?.fullName || "No contact"}
                           </div>
                         </div>
@@ -926,7 +926,7 @@ export default function Tickets({ user }) {
                           <div className="truncate text-[12px] text-slate-200">
                             {prettyTicketCategory(ticket.category)}
                           </div>
-                          <div className="mt-1 truncate text-[11px] text-slate-500">
+                          <div className="mt-1 truncate text-[11px] text-muted">
                             {ticket.assignedTo || "Unassigned"}
                           </div>
                         </div>
@@ -1033,13 +1033,13 @@ export default function Tickets({ user }) {
                         />
                       </div>
 
-                      <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/6 pt-3">
+                      <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/8 pt-3">
                         <span
                           className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${health.tone}`}
                         >
                           {health.label}
                         </span>
-                        <span className="text-[11px] text-slate-500">
+                        <span className="text-[11px] text-muted">
                           {ticket.priority === "urgent"
                             ? "Urgent item"
                             : ticket.status === "waiting_client"
@@ -1048,8 +1048,8 @@ export default function Tickets({ user }) {
                         </span>
                       </div>
 
-                      <div className="mt-3 rounded-xl border border-white/6 bg-black/10 p-3">
-                        <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
+                      <div className="mt-3 rounded-xl border border-white/8 bg-black/10 p-3">
+                        <div className="text-[10px] uppercase tracking-[0.08em] text-muted">
                           Description
                         </div>
                         <div className="mt-1 text-[12px] leading-6 text-slate-300">
@@ -1073,7 +1073,7 @@ export default function Tickets({ user }) {
               />
             </div>
 
-            <div className="mt-3 text-[11px] text-slate-500">
+            <div className="mt-3 text-[11px] text-muted">
               {isClient(user)
                 ? "Click any row to open the full ticket detail and follow the latest updates."
                 : "Click any row to open the full ticket detail, manage assignment, update communication and track the full support flow."}
@@ -1083,7 +1083,7 @@ export default function Tickets({ user }) {
 
         {createOpen && isClient(user) ? (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
-            <div className="w-full max-w-[640px] rounded-[28px] border border-white/10 bg-[#08101b] shadow-[0_30px_100px_rgba(0,0,0,0.45)]">
+            <div className="w-full max-w-[640px] rounded-shell border border-white/10 bg-nav shadow-[0_30px_100px_rgba(0,0,0,0.45)]">
               <div className="flex items-start justify-between gap-4 border-b border-white/8 px-5 py-5">
                 <div>
                   <div className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[9px] uppercase tracking-[0.16em] text-slate-300">

@@ -2,7 +2,7 @@ export default function AuthShell({ title, subtitle, children }) {
   const currentYear = new Date().getFullYear();
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#07111f] text-white">
+    <div className="relative min-h-screen overflow-hidden bg-auth text-white">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-[-10%] top-[-8%] h-[360px] w-[360px] rounded-full bg-indigo-500/18 blur-3xl" />
         <div className="absolute right-[-8%] top-[12%] h-[320px] w-[320px] rounded-full bg-cyan-400/10 blur-3xl" />
@@ -17,7 +17,7 @@ export default function AuthShell({ title, subtitle, children }) {
             APLISIM Business Console
           </div>
 
-          <div className="mt-5 rounded-[22px] border border-white/10 bg-slate-900/70 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:p-6">
+          <div className="mt-5 rounded-card border border-white/10 bg-slate-900/70 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:p-6">
             <h1 className="text-[20px] font-semibold tracking-[-0.03em] text-white">
               {title}
             </h1>
@@ -28,7 +28,7 @@ export default function AuthShell({ title, subtitle, children }) {
             <div className="mt-5">{children}</div>
           </div>
 
-          <div className="mt-5 text-center text-[10px] text-slate-500">
+          <div className="mt-5 text-center text-[10px] text-muted">
             &copy; {currentYear} APLISIM
           </div>
         </div>

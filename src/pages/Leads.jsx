@@ -33,10 +33,10 @@ function buildInitialForm(settings = null) {
 }
 
 const inputClass =
-  "h-9 w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
+  "h-9 w-full rounded-xl border border-white/8 bg-field px-3 text-[12px] text-white outline-none placeholder:text-muted transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10";
 
 const textareaClass =
-  "w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
+  "w-full rounded-xl border border-white/8 bg-field px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-muted transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10";
 
 const labelClass = "text-[11px] font-medium text-slate-300";
 
@@ -275,7 +275,7 @@ export default function Leads({ user }) {
   return (
     <div className="w-full p-3 text-white sm:p-4 lg:p-5">
       <div className="mx-auto max-w-[1700px]">
-        <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.24)] sm:px-5 sm:py-5">
+        <div className="relative overflow-hidden rounded-shell border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.24)] sm:px-5 sm:py-5">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.07),transparent_30%)]" />
 
           <div className="relative z-10 flex flex-col gap-5">
@@ -299,7 +299,7 @@ export default function Leads({ user }) {
                 type="button"
                 onClick={() => loadLeads(true)}
                 disabled={refreshing}
-                className="inline-flex items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-semibold text-white transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-semibold text-white transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {refreshing ? "Refreshing..." : "Refresh"}
               </button>
@@ -355,7 +355,7 @@ export default function Leads({ user }) {
           }`}
         >
           {canCreateLead(user) ? (
-            <div className="rounded-[20px] border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
+            <div className="rounded-card border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
               <div className="mb-4">
                 <h2 className="text-[15px] font-semibold text-white sm:text-[16px]">
                   Add lead
@@ -504,7 +504,7 @@ export default function Leads({ user }) {
             </div>
           ) : null}
 
-          <div className="rounded-[20px] border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
+          <div className="rounded-card border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
             <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <h2 className="text-[15px] font-semibold text-white sm:text-[16px]">
@@ -524,14 +524,14 @@ export default function Leads({ user }) {
                   onChange={(e) => controls.setQuery(e.target.value)}
                   aria-label="Search leads"
                   placeholder="Search title, company, contact..."
-                  className="h-9 w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10 sm:w-[260px]"
+                  className="h-9 w-full rounded-xl border border-white/8 bg-field px-3 text-[12px] text-white outline-none placeholder:text-muted transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10 sm:w-[260px]"
                 />
 
                 <select
                   value={statusFilter}
                   onChange={(e) => controls.setStatusFilter(e.target.value)}
                   aria-label="Filter by status"
-                  className="h-9 rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10"
+                  className="h-9 rounded-xl border border-white/8 bg-field px-3 text-[12px] text-white outline-none transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10"
                 >
                   <option value="all" className="bg-slate-900">
                     All statuses
@@ -569,7 +569,7 @@ export default function Leads({ user }) {
             </div>
 
             <div className="hidden overflow-hidden rounded-2xl border border-white/8 xl:block">
-              <div className="grid grid-cols-[minmax(240px,1.35fr)_minmax(120px,0.8fr)_minmax(160px,0.95fr)_minmax(120px,0.75fr)_minmax(110px,0.7fr)_150px_120px] gap-3 bg-white/[0.03] px-4 py-3 text-[10px] uppercase tracking-[0.08em] text-slate-500">
+              <div className="grid grid-cols-[minmax(240px,1.35fr)_minmax(120px,0.8fr)_minmax(160px,0.95fr)_minmax(120px,0.75fr)_minmax(110px,0.7fr)_150px_120px] gap-3 bg-white/[0.03] px-4 py-3 text-[10px] uppercase tracking-[0.08em] text-muted">
                 <SortHeader
                   label="Lead"
                   field="title"
@@ -636,7 +636,7 @@ export default function Leads({ user }) {
                           <div className="truncate text-[12px] text-slate-200">
                             {lead.contactName || "No contact"}
                           </div>
-                          <div className="mt-1 truncate text-[11px] text-slate-500">
+                          <div className="mt-1 truncate text-[11px] text-muted">
                             {lead.email || lead.phone || "—"}
                           </div>
                         </div>
@@ -671,7 +671,7 @@ export default function Leads({ user }) {
                               {lead.client.companyName}
                             </Link>
                           ) : (
-                            <span className="text-[11px] text-slate-500">
+                            <span className="text-[11px] text-muted">
                               Not converted
                             </span>
                           )}
@@ -693,7 +693,7 @@ export default function Leads({ user }) {
                                 : "Convert"}
                             </button>
                           ) : (
-                            <span className="text-[11px] text-slate-500">
+                            <span className="text-[11px] text-muted">
                               Admin only
                             </span>
                           )}
@@ -770,7 +770,7 @@ export default function Leads({ user }) {
                         />
                       </div>
 
-                      <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/6 pt-3">
+                      <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/8 pt-3">
                         <div className="min-w-0">
                           {lead.client ? (
                             <Link
@@ -781,7 +781,7 @@ export default function Leads({ user }) {
                               {lead.client.companyName}
                             </Link>
                           ) : (
-                            <span className="text-[11px] text-slate-500">
+                            <span className="text-[11px] text-muted">
                               Not converted
                             </span>
                           )}
@@ -803,7 +803,7 @@ export default function Leads({ user }) {
                                 : "Convert"}
                             </button>
                           ) : (
-                            <span className="text-[11px] text-slate-500">
+                            <span className="text-[11px] text-muted">
                               Admin only
                             </span>
                           )}
@@ -826,7 +826,7 @@ export default function Leads({ user }) {
               />
             </div>
 
-            <div className="mt-3 text-[11px] text-slate-500">
+            <div className="mt-3 text-[11px] text-muted">
               Click any row to open the full lead detail. Convert a won lead
               into a real client account without losing sales history.
             </div>

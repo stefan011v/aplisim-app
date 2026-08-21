@@ -419,7 +419,7 @@ export default function Dashboard() {
   return (
     <div className="w-full p-3 text-white sm:p-4 lg:p-5">
       <div className="mx-auto max-w-[1700px]">
-        <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.24)] sm:px-5 sm:py-5">
+        <div className="relative overflow-hidden rounded-shell border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.24)] sm:px-5 sm:py-5">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.07),transparent_30%)]" />
 
           <div className="relative z-10 flex flex-col gap-5">
@@ -492,7 +492,7 @@ export default function Dashboard() {
         ) : null}
 
         {loading ? (
-          <div className="mt-4 rounded-[20px] border border-white/8 bg-slate-900/70 p-5 text-[12px] text-slate-300 shadow-[0_10px_32px_rgba(0,0,0,0.18)]">
+          <div className="mt-4 rounded-card border border-white/8 bg-slate-900/70 p-5 text-[12px] text-slate-300 shadow-[0_10px_32px_rgba(0,0,0,0.18)]">
             Loading dashboard...
           </div>
         ) : (
@@ -510,7 +510,7 @@ export default function Dashboard() {
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-4 rounded-xl border border-dashed border-white/8 bg-white/[0.02] px-3 py-4 text-[10px] text-slate-500 sm:text-[11px]">
+                  <div className="mt-4 rounded-xl border border-dashed border-white/8 bg-white/[0.02] px-3 py-4 text-[10px] text-muted sm:text-[11px]">
                     No urgent items right now.
                   </div>
                 )}
@@ -532,7 +532,7 @@ export default function Dashboard() {
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-4 rounded-xl border border-dashed border-white/8 bg-white/[0.02] px-3 py-4 text-[10px] text-slate-500 sm:text-[11px]">
+                  <div className="mt-4 rounded-xl border border-dashed border-white/8 bg-white/[0.02] px-3 py-4 text-[10px] text-muted sm:text-[11px]">
                     No recent activity yet.
                   </div>
                 )}
@@ -671,7 +671,7 @@ export default function Dashboard() {
                       <Link
                         key={item.id}
                         to="/access-requests"
-                        className="rounded-xl border border-white/6 bg-slate-950/50 px-3 py-3 transition hover:bg-white/[0.04]"
+                        className="rounded-xl border border-white/8 bg-slate-950/50 px-3 py-3 transition hover:bg-white/[0.04]"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
@@ -694,7 +694,7 @@ export default function Dashboard() {
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-4 rounded-xl border border-dashed border-white/8 bg-white/[0.02] px-3 py-4 text-[10px] text-slate-500 sm:text-[11px]">
+                  <div className="mt-4 rounded-xl border border-dashed border-white/8 bg-white/[0.02] px-3 py-4 text-[10px] text-muted sm:text-[11px]">
                     No access requests yet.
                   </div>
                 )}
@@ -795,7 +795,7 @@ function TimelineRow({ item, isLast }) {
             </span>
           </div>
 
-          <div className="text-[9px] text-slate-500 sm:text-[10px]">
+          <div className="text-[9px] text-muted sm:text-[10px]">
             {formatDateTime(item.createdAt)}
           </div>
         </div>
@@ -833,14 +833,14 @@ function AttentionRow({ item }) {
 
 function SnapshotCard({ label, value, hint }) {
   return (
-    <div className="rounded-xl border border-white/6 bg-slate-950/50 p-3">
-      <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
+    <div className="rounded-xl border border-white/8 bg-slate-950/50 p-3">
+      <div className="text-[10px] uppercase tracking-[0.08em] text-muted">
         {label}
       </div>
       <div className="mt-2 text-[22px] font-semibold leading-none text-white">
         {value}
       </div>
-      <div className="mt-1 text-[10px] text-slate-500">{hint}</div>
+      <div className="mt-1 text-[10px] text-muted">{hint}</div>
     </div>
   );
 }
@@ -932,7 +932,7 @@ function BreakdownDonut({ items, total }) {
         <div className="text-[24px] font-semibold leading-none text-white">
           {total}
         </div>
-        <div className="mt-1 text-[10px] uppercase tracking-[0.08em] text-slate-500">
+        <div className="mt-1 text-[10px] uppercase tracking-[0.08em] text-muted">
           Total leads
         </div>
       </div>

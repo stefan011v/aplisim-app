@@ -125,7 +125,7 @@ export default function Login({ onLogin }) {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#07111f] text-white">
+    <div className="relative min-h-screen overflow-hidden bg-auth text-white">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-[-10%] top-[-8%] h-[360px] w-[360px] rounded-full bg-indigo-500/18 blur-3xl" />
         <div className="absolute right-[-8%] top-[12%] h-[320px] w-[320px] rounded-full bg-cyan-400/10 blur-3xl" />
@@ -159,7 +159,7 @@ export default function Login({ onLogin }) {
                 {benefits.map((item) => (
                   <div
                     key={item.title}
-                    className="rounded-3xl border border-white/8 bg-white/[0.045] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur-sm"
+                    className="rounded-shell border border-white/8 bg-white/[0.045] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur-sm"
                   >
                     <div className="mb-2 text-sm font-semibold text-white">
                       {item.title}
@@ -186,14 +186,14 @@ export default function Login({ onLogin }) {
           </section>
 
           <section className="w-full">
-            <div className="mx-auto w-full max-w-[500px] rounded-[32px] border border-white/10 bg-[rgba(8,15,30,0.82)] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.42)] backdrop-blur-xl sm:p-8">
+            <div className="mx-auto w-full max-w-[500px] rounded-shell border border-white/10 bg-[rgba(8,15,30,0.82)] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.42)] backdrop-blur-xl sm:p-8">
               <div className="mb-6 flex items-start justify-between gap-4">
                 <div>
                   <div className="inline-flex rounded-full border border-indigo-400/20 bg-indigo-400/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-indigo-200">
                     APLISIM
                   </div>
 
-                  <h2 className="mt-4 text-[30px] font-semibold leading-[1.08] tracking-[-0.03em] text-white">
+                  <h2 className="mt-4 text-[28px] font-semibold leading-[1.08] tracking-[-0.03em] text-white">
                     {view === "login" ? "Sign in" : "Request access"}
                   </h2>
 
@@ -205,7 +205,7 @@ export default function Login({ onLogin }) {
                 </div>
 
                 <div className="hidden rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-right sm:block">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-muted">
                     Status
                   </div>
                   <div className="mt-1 text-sm font-semibold text-emerald-300">
@@ -228,7 +228,7 @@ export default function Login({ onLogin }) {
                         onChange={handleChange}
                         placeholder="name@company.com"
                         autoComplete="username"
-                        className="w-full rounded-2xl border border-white/10 bg-[#0b1220] px-4 py-[14px] text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-indigo-400/50 focus:bg-[#0d1525]"
+                        className="w-full rounded-2xl border border-white/10 bg-field px-4 py-[14px] text-sm text-white outline-none transition placeholder:text-muted focus:border-indigo-400/50 focus:bg-field-focus"
                       />
                     </div>
 
@@ -237,7 +237,7 @@ export default function Login({ onLogin }) {
                         <label className="text-[13px] font-medium text-slate-300">
                           Password
                         </label>
-                        <span className="text-[12px] text-slate-500">
+                        <span className="text-[12px] text-muted">
                           Secure access only
                         </span>
                       </div>
@@ -249,7 +249,7 @@ export default function Login({ onLogin }) {
                         onChange={handleChange}
                         placeholder="Enter password"
                         autoComplete="current-password"
-                        className="w-full rounded-2xl border border-white/10 bg-[#0b1220] px-4 py-[14px] text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-indigo-400/50 focus:bg-[#0d1525]"
+                        className="w-full rounded-2xl border border-white/10 bg-field px-4 py-[14px] text-sm text-white outline-none transition placeholder:text-muted focus:border-indigo-400/50 focus:bg-field-focus"
                       />
                     </div>
 
@@ -318,7 +318,7 @@ export default function Login({ onLogin }) {
                           value={requestForm.fullName}
                           onChange={handleRequestChange}
                           placeholder="Name"
-                          className="w-full rounded-2xl border border-white/10 bg-[#0b1220] px-4 py-[14px] text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-indigo-400/50 focus:bg-[#0d1525]"
+                          className="w-full rounded-2xl border border-white/10 bg-field px-4 py-[14px] text-sm text-white outline-none transition placeholder:text-muted focus:border-indigo-400/50 focus:bg-field-focus"
                         />
                       </div>
 
@@ -332,7 +332,7 @@ export default function Login({ onLogin }) {
                           value={requestForm.email}
                           onChange={handleRequestChange}
                           placeholder="name@company.com"
-                          className="w-full rounded-2xl border border-white/10 bg-[#0b1220] px-4 py-[14px] text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-indigo-400/50 focus:bg-[#0d1525]"
+                          className="w-full rounded-2xl border border-white/10 bg-field px-4 py-[14px] text-sm text-white outline-none transition placeholder:text-muted focus:border-indigo-400/50 focus:bg-field-focus"
                         />
                       </div>
                     </div>
@@ -347,7 +347,7 @@ export default function Login({ onLogin }) {
                         value={requestForm.company}
                         onChange={handleRequestChange}
                         placeholder="Company name"
-                        className="w-full rounded-2xl border border-white/10 bg-[#0b1220] px-4 py-[14px] text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-indigo-400/50 focus:bg-[#0d1525]"
+                        className="w-full rounded-2xl border border-white/10 bg-field px-4 py-[14px] text-sm text-white outline-none transition placeholder:text-muted focus:border-indigo-400/50 focus:bg-field-focus"
                       />
                     </div>
 
@@ -361,7 +361,7 @@ export default function Login({ onLogin }) {
                         onChange={handleRequestChange}
                         placeholder="Tell us why you need access."
                         rows={4}
-                        className="w-full resize-none rounded-2xl border border-white/10 bg-[#0b1220] px-4 py-[14px] text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-indigo-400/50 focus:bg-[#0d1525]"
+                        className="w-full resize-none rounded-2xl border border-white/10 bg-field px-4 py-[14px] text-sm text-white outline-none transition placeholder:text-muted focus:border-indigo-400/50 focus:bg-field-focus"
                       />
                     </div>
 
@@ -378,7 +378,7 @@ export default function Login({ onLogin }) {
                     ) : null}
 
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="m-0 text-xs leading-5 text-slate-500">
+                      <p className="m-0 text-xs leading-5 text-muted">
                         Requests are saved to the database and available for
                         admin review.
                       </p>
@@ -395,7 +395,7 @@ export default function Login({ onLogin }) {
                 </>
               )}
 
-              <div className="mt-6 flex flex-col gap-2 border-t border-white/8 pt-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-6 flex flex-col gap-2 border-t border-white/8 pt-5 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
                 <span>APLISIM Internal Workspace</span>
                 <span>© {currentYear} APLISIM</span>
               </div>

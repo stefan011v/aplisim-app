@@ -159,9 +159,9 @@ export default function AppLayout({ user, onLogout }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#060b14] text-white">
+    <div className="min-h-screen bg-shell text-white">
       <div className="flex min-h-screen">
-        <aside className="fixed left-0 top-0 hidden h-screen w-[248px] border-r border-white/8 bg-[#08101b] xl:flex xl:flex-col">
+        <aside className="fixed left-0 top-0 hidden h-screen w-[248px] border-r border-white/8 bg-nav xl:flex xl:flex-col">
           <SidebarContent
             sections={sections}
             counts={counts}
@@ -173,7 +173,7 @@ export default function AppLayout({ user, onLogout }) {
         </aside>
 
         <div className="flex min-h-screen min-w-0 flex-1 flex-col xl:pl-[248px]">
-          <header className="sticky top-0 z-30 border-b border-white/8 bg-[#060b14]/92 backdrop-blur-xl">
+          <header className="sticky top-0 z-30 border-b border-white/8 bg-shell/92 backdrop-blur-xl">
             <div className="flex items-center justify-between gap-3 px-3 py-2.5 sm:px-4 lg:px-5">
               <div className="flex min-w-0 items-center gap-3">
                 <button
@@ -185,7 +185,7 @@ export default function AppLayout({ user, onLogout }) {
                 </button>
 
                 <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-1.5 text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                  <div className="flex flex-wrap items-center gap-1.5 text-[9px] uppercase tracking-[0.14em] text-muted">
                     {breadcrumbs.map((crumb, index) => (
                       <Fragment key={crumb.to}>
                         {index > 0 ? <span>/</span> : null}
@@ -199,7 +199,7 @@ export default function AppLayout({ user, onLogout }) {
                     ))}
                   </div>
 
-                  <div className="mt-0.5 text-[17px] font-semibold tracking-[-0.03em] text-white sm:text-[18px]">
+                  <div className="mt-0.5 text-[18px] font-semibold tracking-[-0.03em] text-white sm:text-[18px]">
                     {pageTitle}
                   </div>
                 </div>
@@ -210,13 +210,13 @@ export default function AppLayout({ user, onLogout }) {
                   type="button"
                   onClick={() => setSearchOpen(true)}
                   aria-label="Search workspace"
-                  className="hidden min-w-[220px] items-center gap-2 rounded-xl border border-white/8 bg-[#0b1220] px-3 py-2 text-left transition hover:border-white/15 lg:flex"
+                  className="hidden min-w-[220px] items-center gap-2 rounded-xl border border-white/8 bg-field px-3 py-2 text-left transition hover:border-white/15 lg:flex"
                 >
-                  <MagnifyingGlassIcon className="h-3.5 w-3.5 shrink-0 text-slate-500" />
-                  <span className="flex-1 text-[11px] text-slate-500">
+                  <MagnifyingGlassIcon className="h-3.5 w-3.5 shrink-0 text-muted" />
+                  <span className="flex-1 text-[11px] text-muted">
                     Search...
                   </span>
-                  <kbd className="rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[9px] text-slate-400">
+                  <kbd className="rounded-lg border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[9px] text-slate-400">
                     Ctrl K
                   </kbd>
                 </button>
@@ -255,8 +255,8 @@ export default function AppLayout({ user, onLogout }) {
                         onClick={() => setAttentionOpen(false)}
                       />
 
-                      <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[260px] overflow-hidden rounded-2xl border border-white/10 bg-[#0b1220] shadow-[0_18px_50px_rgba(0,0,0,0.45)]">
-                        <div className="border-b border-white/8 px-3 py-2 text-[9px] uppercase tracking-[0.14em] text-slate-500">
+                      <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[260px] overflow-hidden rounded-2xl border border-white/10 bg-field shadow-[0_18px_50px_rgba(0,0,0,0.45)]">
+                        <div className="border-b border-white/8 px-3 py-2 text-[9px] uppercase tracking-[0.14em] text-muted">
                           Needs attention now
                         </div>
 
@@ -331,7 +331,7 @@ export default function AppLayout({ user, onLogout }) {
           />
           <div
             ref={mobileNavRef}
-            className="absolute left-0 top-0 h-full w-[248px] border-r border-white/10 bg-[#08101b] shadow-[20px_0_60px_rgba(0,0,0,0.35)]"
+            className="absolute left-0 top-0 h-full w-[248px] border-r border-white/10 bg-nav shadow-[20px_0_60px_rgba(0,0,0,0.35)]"
           >
             <div className="flex items-center justify-between px-4 py-4">
               <div className="text-[13px] font-semibold text-white">

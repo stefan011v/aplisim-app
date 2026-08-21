@@ -67,10 +67,10 @@ function getAccountState(client, tickets) {
 }
 
 const inputClass =
-  "h-10 w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
+  "h-10 w-full rounded-xl border border-white/8 bg-field px-3 text-[12px] text-white outline-none placeholder:text-muted transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10";
 
 const textareaClass =
-  "w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
+  "w-full rounded-xl border border-white/8 bg-field px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-muted transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10";
 
 const labelClass = "text-[11px] font-medium text-slate-300";
 
@@ -253,7 +253,7 @@ export default function ClientDashboard({ user }) {
   return (
     <div className="w-full p-3 text-white sm:p-4 lg:p-5">
       <div className="mx-auto max-w-[1700px]">
-        <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.24)] sm:px-5 sm:py-5">
+        <div className="relative overflow-hidden rounded-shell border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.24)] sm:px-5 sm:py-5">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.07),transparent_30%)]" />
 
           <div className="relative z-10 flex flex-col gap-5">
@@ -383,7 +383,7 @@ export default function ClientDashboard({ user }) {
         ) : null}
 
         {loading ? (
-          <div className="mt-4 rounded-[20px] border border-white/8 bg-slate-900/70 p-5 text-[12px] text-slate-300 shadow-[0_10px_32px_rgba(0,0,0,0.18)]">
+          <div className="mt-4 rounded-card border border-white/8 bg-slate-900/70 p-5 text-[12px] text-slate-300 shadow-[0_10px_32px_rgba(0,0,0,0.18)]">
             Loading your dashboard...
           </div>
         ) : (
@@ -431,7 +431,7 @@ export default function ClientDashboard({ user }) {
                           </div>
                         </div>
 
-                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-500">
+                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10px] text-muted">
                           <span>
                             Updated: {formatDateTime(ticket.updatedAt || ticket.createdAt)}
                           </span>
@@ -441,7 +441,7 @@ export default function ClientDashboard({ user }) {
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-4 rounded-xl border border-dashed border-white/8 bg-white/[0.02] px-3 py-4 text-[11px] text-slate-500">
+                  <div className="mt-4 rounded-xl border border-dashed border-white/8 bg-white/[0.02] px-3 py-4 text-[11px] text-muted">
                     You have no open requests right now.
                   </div>
                 )}
@@ -463,7 +463,7 @@ export default function ClientDashboard({ user }) {
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-4 rounded-xl border border-dashed border-white/8 bg-white/[0.02] px-3 py-4 text-[11px] text-slate-500">
+                  <div className="mt-4 rounded-xl border border-dashed border-white/8 bg-white/[0.02] px-3 py-4 text-[11px] text-muted">
                     No recent activity yet.
                   </div>
                 )}
@@ -582,7 +582,7 @@ export default function ClientDashboard({ user }) {
 
         {createOpen ? (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
-            <div className="w-full max-w-[640px] rounded-[28px] border border-white/10 bg-[#08101b] shadow-[0_30px_100px_rgba(0,0,0,0.45)]">
+            <div className="w-full max-w-[640px] rounded-shell border border-white/10 bg-nav shadow-[0_30px_100px_rgba(0,0,0,0.45)]">
               <div className="flex items-start justify-between gap-4 border-b border-white/8 px-5 py-5">
                 <div>
                   <div className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[9px] uppercase tracking-[0.16em] text-slate-300">
@@ -728,7 +728,7 @@ function TimelineRow({ item, isLast }) {
             </div>
           </div>
 
-          <div className="text-[10px] text-slate-500">
+          <div className="text-[10px] text-muted">
             {formatDateTime(item.createdAt)}
           </div>
         </div>

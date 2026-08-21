@@ -348,7 +348,7 @@ export default function AccessRequests() {
   return (
     <div className="w-full p-3 text-white sm:p-4 lg:p-5">
       <div className="mx-auto max-w-[1700px]">
-        <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.24)] sm:px-5 sm:py-5">
+        <div className="relative overflow-hidden rounded-shell border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.24)] sm:px-5 sm:py-5">
           <div className="relative z-10 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div className="min-w-0">
               <div className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[9px] uppercase tracking-[0.16em] text-slate-300">
@@ -369,7 +369,7 @@ export default function AccessRequests() {
               type="button"
               onClick={() => loadRequests(true)}
               disabled={refreshing}
-              className="inline-flex items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-semibold text-white transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-70"
+              className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-semibold text-white transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-70"
             >
               {refreshing ? "Refreshing..." : "Refresh"}
             </button>
@@ -406,7 +406,7 @@ export default function AccessRequests() {
           <StatCard label="Rejected" value={stats.rejected} />
         </div>
 
-        <div className="mt-4 rounded-[20px] border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
+        <div className="mt-4 rounded-card border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-[15px] font-semibold text-white sm:text-[16px]">
@@ -422,13 +422,13 @@ export default function AccessRequests() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search by name, email, company..."
-                className="h-9 min-w-0 rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none placeholder:text-slate-500 focus:border-white/15 sm:w-[260px]"
+                className="h-9 min-w-0 rounded-xl border border-white/8 bg-field px-3 text-[12px] text-white outline-none placeholder:text-muted focus:border-white/15 sm:w-[260px]"
               />
 
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-9 rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none focus:border-white/15"
+                className="h-9 rounded-xl border border-white/8 bg-field px-3 text-[12px] text-white outline-none focus:border-white/15"
               >
                 <option value="all">All statuses</option>
                 <option value="new">New</option>
@@ -448,7 +448,7 @@ export default function AccessRequests() {
               No access requests found.
             </div>
           ) : (
-            <div className="mt-4 overflow-hidden rounded-[18px] border border-white/8">
+            <div className="mt-4 overflow-hidden rounded-card border border-white/8">
               <div className="overflow-x-auto">
                 <table className="min-w-full border-collapse">
                   <thead>
@@ -481,7 +481,7 @@ export default function AccessRequests() {
                     {filteredRequests.map((item) => (
                       <tr
                         key={item.id}
-                        className="border-b border-white/6 bg-slate-950/20 align-top transition last:border-b-0 hover:bg-white/[0.025]"
+                        className="border-b border-white/8 bg-slate-950/20 align-top transition last:border-b-0 hover:bg-white/[0.025]"
                       >
                         <td className="px-4 py-4">
                           <button
@@ -547,7 +547,7 @@ export default function AccessRequests() {
                               type="button"
                               disabled={actionLoadingId === item.id}
                               onClick={() => changeStatus(item.id, "reviewing")}
-                              className="rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[9px] font-medium leading-none text-amber-200 transition hover:bg-amber-500/15 disabled:opacity-60"
+                              className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[9px] font-medium leading-none text-amber-200 transition hover:bg-amber-500/15 disabled:opacity-60"
                             >
                               Reviewing
                             </button>
@@ -556,7 +556,7 @@ export default function AccessRequests() {
                               type="button"
                               disabled={actionLoadingId === item.id}
                               onClick={() => changeStatus(item.id, "approved")}
-                              className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-medium leading-none text-emerald-200 transition hover:bg-emerald-500/15 disabled:opacity-60"
+                              className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-medium leading-none text-emerald-200 transition hover:bg-emerald-500/15 disabled:opacity-60"
                             >
                               Approve
                             </button>
@@ -565,7 +565,7 @@ export default function AccessRequests() {
                               type="button"
                               disabled={actionLoadingId === item.id}
                               onClick={() => changeStatus(item.id, "rejected")}
-                              className="rounded-md border border-rose-500/20 bg-rose-500/10 px-2 py-1 text-[9px] font-medium leading-none text-rose-200 transition hover:bg-rose-500/15 disabled:opacity-60"
+                              className="rounded-lg border border-rose-500/20 bg-rose-500/10 px-2 py-1 text-[9px] font-medium leading-none text-rose-200 transition hover:bg-rose-500/15 disabled:opacity-60"
                             >
                               Reject
                             </button>
@@ -576,7 +576,7 @@ export default function AccessRequests() {
                                 actionLoadingId === item.id || !!item.clientId
                               }
                               onClick={() => openConvertModal(item)}
-                              className="rounded-md border border-indigo-500/20 bg-indigo-500/10 px-2 py-1 text-[9px] font-medium leading-none text-indigo-200 transition hover:bg-indigo-500/15 disabled:cursor-not-allowed disabled:opacity-50"
+                              className="rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-2 py-1 text-[9px] font-medium leading-none text-indigo-200 transition hover:bg-indigo-500/15 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               {item.clientId ? "Client created" : "To client"}
                             </button>
@@ -585,7 +585,7 @@ export default function AccessRequests() {
                               type="button"
                               disabled={actionLoadingId === item.id}
                               onClick={() => handleDelete(item)}
-                              className="rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 text-[9px] font-medium leading-none text-slate-300 transition hover:bg-white/[0.08] hover:text-white disabled:opacity-60"
+                              className="rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-[9px] font-medium leading-none text-slate-300 transition hover:bg-white/[0.08] hover:text-white disabled:opacity-60"
                             >
                               Delete
                             </button>
@@ -603,7 +603,7 @@ export default function AccessRequests() {
 
       {convertModalOpen ? (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-[560px] rounded-[24px] border border-white/10 bg-[#0b1220] p-5 shadow-[0_30px_100px_rgba(0,0,0,0.45)]">
+          <div className="w-full max-w-[560px] rounded-shell border border-white/10 bg-field p-5 shadow-[0_30px_100px_rgba(0,0,0,0.45)]">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="inline-flex rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-indigo-200">
@@ -637,7 +637,7 @@ export default function AccessRequests() {
                     name="companyName"
                     value={convertForm.companyName}
                     onChange={handleConvertFormChange}
-                    className="w-full rounded-xl border border-white/10 bg-[#09101d] px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-slate-500 focus:border-white/15"
+                    className="w-full rounded-xl border border-white/10 bg-field px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-muted focus:border-white/15"
                   />
                 </div>
 
@@ -650,7 +650,7 @@ export default function AccessRequests() {
                     name="contactName"
                     value={convertForm.contactName}
                     onChange={handleConvertFormChange}
-                    className="w-full rounded-xl border border-white/10 bg-[#09101d] px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-slate-500 focus:border-white/15"
+                    className="w-full rounded-xl border border-white/10 bg-field px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-muted focus:border-white/15"
                   />
                 </div>
               </div>
@@ -664,7 +664,7 @@ export default function AccessRequests() {
                   name="email"
                   value={convertForm.email}
                   onChange={handleConvertFormChange}
-                  className="w-full rounded-xl border border-white/10 bg-[#09101d] px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-slate-500 focus:border-white/15"
+                  className="w-full rounded-xl border border-white/10 bg-field px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-muted focus:border-white/15"
                 />
               </div>
 
@@ -677,12 +677,12 @@ export default function AccessRequests() {
                   value={convertForm.notes}
                   onChange={handleConvertFormChange}
                   rows={4}
-                  className="w-full resize-none rounded-xl border border-white/10 bg-[#09101d] px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-slate-500 focus:border-white/15"
+                  className="w-full resize-none rounded-xl border border-white/10 bg-field px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-muted focus:border-white/15"
                 />
               </div>
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-[11px] leading-5 text-slate-500">
+                <p className="text-[11px] leading-5 text-muted">
                   A temporary password will be generated automatically and sent by email.
                 </p>
 
@@ -710,7 +710,7 @@ export default function AccessRequests() {
             onClick={closeDrawer}
           />
 
-          <div className="absolute right-0 top-0 h-full w-full max-w-[460px] border-l border-white/10 bg-[#0a1120] shadow-[-24px_0_60px_rgba(0,0,0,0.35)]">
+          <div className="absolute right-0 top-0 h-full w-full max-w-[460px] border-l border-white/10 bg-nav shadow-[-24px_0_60px_rgba(0,0,0,0.35)]">
             <div className="flex h-full flex-col">
               <div className="border-b border-white/8 px-5 py-4">
                 <div className="flex items-start justify-between gap-4">
@@ -787,8 +787,8 @@ export default function AccessRequests() {
                     }
                   />
 
-                  <div className="rounded-[18px] border border-white/8 bg-white/[0.03] p-4">
-                    <div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">
+                  <div className="rounded-card border border-white/8 bg-white/[0.03] p-4">
+                    <div className="text-[10px] uppercase tracking-[0.14em] text-muted">
                       History
                     </div>
 
@@ -801,7 +801,7 @@ export default function AccessRequests() {
                         historyItems.map((entry) => (
                           <div
                             key={entry.id}
-                            className="flex gap-3 rounded-2xl border border-white/6 bg-white/[0.02] px-3 py-3"
+                            className="flex gap-3 rounded-2xl border border-white/8 bg-white/[0.02] px-3 py-3"
                           >
                             <div
                               className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${
@@ -827,7 +827,7 @@ export default function AccessRequests() {
                       )}
                     </div>
 
-                    <p className="mt-4 text-[11px] leading-5 text-slate-500">
+                    <p className="mt-4 text-[11px] leading-5 text-muted">
                       Deleting a request here removes only the request record. Any
                       created client remains available in Clients.
                     </p>
@@ -843,7 +843,7 @@ export default function AccessRequests() {
                     onClick={() =>
                       changeStatus(selectedRequest.id, "reviewing")
                     }
-                    className="rounded-md border border-amber-500/20 bg-amber-500/10 px-2.5 py-1.5 text-[10px] font-medium text-amber-200 transition hover:bg-amber-500/15 disabled:opacity-60"
+                    className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1.5 text-[10px] font-medium text-amber-200 transition hover:bg-amber-500/15 disabled:opacity-60"
                   >
                     Reviewing
                   </button>
@@ -854,7 +854,7 @@ export default function AccessRequests() {
                     onClick={() =>
                       changeStatus(selectedRequest.id, "approved")
                     }
-                    className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1.5 text-[10px] font-medium text-emerald-200 transition hover:bg-emerald-500/15 disabled:opacity-60"
+                    className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1.5 text-[10px] font-medium text-emerald-200 transition hover:bg-emerald-500/15 disabled:opacity-60"
                   >
                     Approve
                   </button>
@@ -865,7 +865,7 @@ export default function AccessRequests() {
                     onClick={() =>
                       changeStatus(selectedRequest.id, "rejected")
                     }
-                    className="rounded-md border border-rose-500/20 bg-rose-500/10 px-2.5 py-1.5 text-[10px] font-medium text-rose-200 transition hover:bg-rose-500/15 disabled:opacity-60"
+                    className="rounded-lg border border-rose-500/20 bg-rose-500/10 px-2.5 py-1.5 text-[10px] font-medium text-rose-200 transition hover:bg-rose-500/15 disabled:opacity-60"
                   >
                     Reject
                   </button>
@@ -877,7 +877,7 @@ export default function AccessRequests() {
                       !!selectedRequest.clientId
                     }
                     onClick={() => openConvertModal(selectedRequest)}
-                    className="rounded-md border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1.5 text-[10px] font-medium text-indigo-200 transition hover:bg-indigo-500/15 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1.5 text-[10px] font-medium text-indigo-200 transition hover:bg-indigo-500/15 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {selectedRequest.clientId ? "Client created" : "To client"}
                   </button>
@@ -886,7 +886,7 @@ export default function AccessRequests() {
                     type="button"
                     disabled={actionLoadingId === selectedRequest.id}
                     onClick={() => handleDelete(selectedRequest)}
-                    className="rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-[10px] font-medium text-slate-300 transition hover:bg-white/[0.08] hover:text-white disabled:opacity-60"
+                    className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-[10px] font-medium text-slate-300 transition hover:bg-white/[0.08] hover:text-white disabled:opacity-60"
                   >
                     Delete
                   </button>
@@ -902,7 +902,7 @@ export default function AccessRequests() {
 
 function StatCard({ label, value }) {
   return (
-    <div className="rounded-[18px] border border-white/8 bg-slate-900/70 p-4">
+    <div className="rounded-card border border-white/8 bg-slate-900/70 p-4">
       <div className="text-[11px] uppercase tracking-[0.14em] text-slate-400">
         {label}
       </div>
@@ -915,8 +915,8 @@ function StatCard({ label, value }) {
 
 function DetailCard({ label, value }) {
   return (
-    <div className="rounded-[18px] border border-white/8 bg-white/[0.03] p-4">
-      <div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">
+    <div className="rounded-card border border-white/8 bg-white/[0.03] p-4">
+      <div className="text-[10px] uppercase tracking-[0.14em] text-muted">
         {label}
       </div>
       <div className="mt-2 text-[12px] text-slate-200">{value}</div>

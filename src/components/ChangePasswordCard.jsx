@@ -43,7 +43,7 @@ export default function ChangePasswordCard({
             onChange={onChange}
             className={inputClass}
           />
-          <p className="text-[10px] text-slate-500">
+          <p className="text-[10px] text-muted">
             At least 8 characters.
           </p>
         </div>

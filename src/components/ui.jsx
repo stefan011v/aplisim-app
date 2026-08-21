@@ -1,19 +1,19 @@
 export const inputClass =
-  "h-9 w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
+  "h-9 w-full rounded-xl border border-white/8 bg-field px-3 text-[12px] text-white outline-none placeholder:text-muted transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10";
 
 export const textareaClass =
-  "w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
+  "w-full rounded-xl border border-white/8 bg-field px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-muted transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10";
 
 export const labelClass = "text-[11px] font-medium text-slate-300";
 
 export const primaryButtonClass =
-  "inline-flex items-center justify-center rounded-[12px] border border-white/10 bg-white px-4 py-2 text-[12px] font-semibold text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70";
+  "inline-flex items-center justify-center rounded-xl border border-white/10 bg-white px-4 py-2 text-[12px] font-semibold text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70";
 
 export const ghostButtonClass =
-  "inline-flex items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-medium text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-medium text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-60";
 
 export const dangerButtonClass =
-  "inline-flex items-center justify-center rounded-[12px] border border-red-500/25 bg-red-500/10 px-3 py-1.5 text-[11px] font-medium text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex items-center justify-center rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-1.5 text-[11px] font-medium text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60";
 
 export function HeroStat({ label, value, hint }) {
   return (
@@ -24,19 +24,19 @@ export function HeroStat({ label, value, hint }) {
       <div className="mt-2 text-[24px] font-semibold tracking-[-0.04em] text-white">
         {value}
       </div>
-      <div className="mt-1 text-[11px] text-slate-500">{hint}</div>
+      <div className="mt-1 text-[11px] text-muted">{hint}</div>
     </div>
   );
 }
 
 export function MiniStat({ label, value, hint }) {
   return (
-    <div className="rounded-xl border border-white/6 bg-slate-950/40 p-3">
+    <div className="rounded-xl border border-white/8 bg-slate-950/40 p-3">
       <div className="text-[11px] text-slate-400">{label}</div>
       <div className="mt-1 text-[18px] font-semibold leading-none text-white">
         {value}
       </div>
-      <div className="mt-1 text-[10px] text-slate-500">{hint}</div>
+      <div className="mt-1 text-[10px] text-muted">{hint}</div>
     </div>
   );
 }
@@ -45,10 +45,10 @@ export function CompactTotal({ label, value, tone = "" }) {
   return (
     <div
       className={`rounded-xl border px-3 py-3 ${
-        tone || "border-white/6 bg-slate-950/50"
+        tone || "border-white/8 bg-slate-950/50"
       }`}
     >
-      <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
+      <div className="text-[10px] uppercase tracking-[0.08em] text-muted">
         {label}
       </div>
       <div className="mt-1 text-[18px] font-semibold text-white">{value}</div>
@@ -59,8 +59,8 @@ export function CompactTotal({ label, value, tone = "" }) {
 /** Label + value tile. Previously duplicated as both MiniInfo and InfoCard. */
 export function MiniInfo({ label, value }) {
   return (
-    <div className="rounded-xl border border-white/6 bg-slate-950/40 p-3">
-      <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
+    <div className="rounded-xl border border-white/8 bg-slate-950/40 p-3">
+      <div className="text-[10px] uppercase tracking-[0.08em] text-muted">
         {label}
       </div>
       <div className="mt-1 break-words text-[12px] text-slate-200">{value}</div>
@@ -71,7 +71,7 @@ export function MiniInfo({ label, value }) {
 export function HeaderChip({ label, value }) {
   return (
     <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] text-slate-300">
-      <span className="text-slate-500">{label}:</span>{" "}
+      <span className="text-muted">{label}:</span>{" "}
       <span className="text-white">{value}</span>
     </div>
   );
@@ -89,7 +89,7 @@ export function EmptyState({ text }) {
 export function Panel({ children, compact = false }) {
   return (
     <div
-      className={`rounded-[20px] border border-white/8 bg-slate-900/70 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm ${
+      className={`rounded-card border border-white/8 bg-slate-900/70 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm ${
         compact ? "p-3.5 sm:p-4" : "p-4 sm:p-5"
       }`}
     >
@@ -141,7 +141,7 @@ export function SortHeader({ label, field, sort, order, onSort, align = "left" }
       onClick={() => onSort(field)}
       aria-sort={isActive ? (order === "asc" ? "ascending" : "descending") : "none"}
       className={`flex items-center gap-1 text-[10px] uppercase tracking-[0.08em] transition hover:text-slate-300 ${
-        isActive ? "text-slate-200" : "text-slate-500"
+        isActive ? "text-slate-200" : "text-muted"
       } ${align === "right" ? "justify-end" : ""}`}
     >
       {label}
@@ -158,7 +158,7 @@ export function SortHeader({ label, field, sort, order, onSort, align = "left" }
  */
 export function SectionCard({ title, description, children, bodyClass = "mt-4" }) {
   return (
-    <div className="rounded-[20px] border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
+    <div className="rounded-card border border-white/8 bg-slate-900/70 p-4 shadow-[0_10px_32px_rgba(0,0,0,0.18)] backdrop-blur-sm sm:p-5">
       <div>
         <h2 className="text-[14px] font-semibold tracking-[-0.02em] text-white sm:text-[15px]">
           {title}

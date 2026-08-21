@@ -407,7 +407,7 @@ export default function Settings({ user, onUserRefresh }) {
   return (
     <div className="w-full p-3 text-white sm:p-4 lg:p-5">
       <div className="mx-auto max-w-[1650px]">
-        <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.24)] sm:px-5 sm:py-5">
+        <div className="relative overflow-hidden rounded-shell border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.24)] sm:px-5 sm:py-5">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.07),transparent_30%)]" />
 
           <div className="relative z-10 flex flex-col gap-5">
@@ -440,7 +440,7 @@ export default function Settings({ user, onUserRefresh }) {
                     savingPassword ||
                     savingInvite
                   }
-                  className="inline-flex items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.04] px-4 py-2 text-[12px] font-semibold text-white transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-[12px] font-semibold text-white transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {refreshing ? "Refreshing..." : "Refresh"}
                 </button>
@@ -474,7 +474,7 @@ export default function Settings({ user, onUserRefresh }) {
         ) : null}
 
         {loading ? (
-          <div className="mt-4 rounded-[20px] border border-white/8 bg-slate-900/70 p-5 text-[12px] text-slate-300 shadow-[0_10px_32px_rgba(0,0,0,0.18)]">
+          <div className="mt-4 rounded-card border border-white/8 bg-slate-900/70 p-5 text-[12px] text-slate-300 shadow-[0_10px_32px_rgba(0,0,0,0.18)]">
             Loading settings...
           </div>
         ) : clientView ? (
@@ -565,7 +565,7 @@ export default function Settings({ user, onUserRefresh }) {
                     <button
                       type="submit"
                       disabled={savingAccount}
-                      className="inline-flex items-center justify-center rounded-[12px] border border-white/10 bg-white px-4 py-2 text-[12px] font-semibold text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
+                      className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white px-4 py-2 text-[12px] font-semibold text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {savingAccount ? "Saving..." : "Save account settings"}
                     </button>
@@ -607,7 +607,7 @@ export default function Settings({ user, onUserRefresh }) {
                       <button
                         type="submit"
                         disabled={savingInvite}
-                        className="inline-flex items-center justify-center rounded-[12px] border border-white/10 bg-white px-4 py-2 text-[12px] font-semibold text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
+                        className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white px-4 py-2 text-[12px] font-semibold text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
                       >
                         {savingInvite ? "Sending..." : "Send invite"}
                       </button>
@@ -992,7 +992,7 @@ export default function Settings({ user, onUserRefresh }) {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="inline-flex items-center justify-center rounded-[12px] border border-white/10 bg-white px-4 py-2 text-[12px] font-semibold text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white px-4 py-2 text-[12px] font-semibold text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {saving ? "Saving..." : "Save settings"}
                 </button>

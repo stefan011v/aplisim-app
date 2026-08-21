@@ -43,10 +43,10 @@ function buildQuickForms(settings = null) {
 }
 
 const inputClass =
-  "h-10 w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
+  "h-10 w-full rounded-xl border border-white/8 bg-field px-3 text-[12px] text-white outline-none placeholder:text-muted transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10";
 
 const textareaClass =
-  "w-full rounded-xl border border-white/8 bg-[#0b1220] px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-slate-500 transition focus:border-white/15 focus:bg-[#0d1526] focus:ring-1 focus:ring-white/10";
+  "w-full rounded-xl border border-white/8 bg-field px-3 py-2.5 text-[12px] text-white outline-none placeholder:text-muted transition focus:border-white/15 focus:bg-field-focus focus:ring-1 focus:ring-white/10";
 
 const labelClass = "text-[11px] font-medium text-slate-300";
 
@@ -178,7 +178,7 @@ export default function QuickCreateDialog({ open, user, onClose, onCreated }) {
   >
     <div
       ref={dialogRef}
-      className="w-full max-w-[820px] rounded-[28px] border border-white/10 bg-[#08101b] shadow-[0_30px_100px_rgba(0,0,0,0.45)]"
+      className="w-full max-w-[820px] rounded-shell border border-white/10 bg-nav shadow-[0_30px_100px_rgba(0,0,0,0.45)]"
     >
       <div className="flex items-start justify-between gap-4 border-b border-white/8 px-5 py-5">
         <div>
@@ -764,7 +764,7 @@ export default function QuickCreateDialog({ open, user, onClose, onCreated }) {
             ) : null}
 
             <div className="flex flex-col-reverse gap-2 border-t border-white/8 pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-[11px] leading-5 text-slate-500">
+              <p className="text-[11px] leading-5 text-muted">
                 This creates the item directly through the same API used
                 by the main pages.
               </p>

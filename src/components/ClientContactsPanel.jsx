@@ -265,8 +265,8 @@ export default function ClientContactsPanel({
                   />
                 </div>
 
-                <div className="mt-3 rounded-xl border border-white/6 bg-black/10 p-3">
-                  <div className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
+                <div className="mt-3 rounded-xl border border-white/8 bg-black/10 p-3">
+                  <div className="text-[10px] uppercase tracking-[0.08em] text-muted">
                     Notes
                   </div>
                   <div className="mt-1 text-[12px] leading-6 text-slate-300">
