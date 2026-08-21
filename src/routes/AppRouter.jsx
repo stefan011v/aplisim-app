@@ -1,26 +1,35 @@
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import Login from "../pages/Login";
-import Dashboard from "../pages/Dashboard";
-import ClientDashboard from "../pages/ClientDashboard";
-import Clients from "../pages/Clients";
-import ClientDetail from "../pages/ClientDetail";
-import Leads from "../pages/Leads";
-import LeadDetail from "../pages/LeadDetail";
 import ProtectedRoute from "./ProtectedRoute";
 import AppLayout from "../layouts/AppLayout";
-import Tickets from "../pages/Tickets";
-import TicketDetail from "../pages/TicketDetail";
-import AccessRequests from "../pages/AccessRequests";
-import Settings from "../pages/Settings";
+import RouteFallback from "../components/RouteFallback";
+
+// Each screen ships as its own chunk so the first paint does not carry the
+// whole console.
+const Login = lazy(() => import("../pages/Login"));
+const Dashboard = lazy(() => import("../pages/Dashboard"));
+const ClientDashboard = lazy(() => import("../pages/ClientDashboard"));
+const Clients = lazy(() => import("../pages/Clients"));
+const ClientDetail = lazy(() => import("../pages/ClientDetail"));
+const Leads = lazy(() => import("../pages/Leads"));
+const LeadDetail = lazy(() => import("../pages/LeadDetail"));
+const Tickets = lazy(() => import("../pages/Tickets"));
+const TicketDetail = lazy(() => import("../pages/TicketDetail"));
+const AccessRequests = lazy(() => import("../pages/AccessRequests"));
+const Settings = lazy(() => import("../pages/Settings"));
+const ForgotPassword = lazy(() => import("../pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("../pages/ResetPassword"));
 
 export default function AppRouter({
   isAuthenticated,
   user,
   onLogin,
   onLogout,
+  onUserRefresh,
 }) {
   return (
     <BrowserRouter>
+      <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route
           path="/login"
@@ -97,7 +106,7 @@ export default function AppRouter({
                 user={user}
                 allowedRoles={["admin", "staff", "viewer"]}
               >
-                <Leads />
+                <Leads user={user} />
               </ProtectedRoute>
             }
           />
@@ -110,7 +119,7 @@ export default function AppRouter({
                 user={user}
                 allowedRoles={["admin", "staff", "viewer"]}
               >
-                <LeadDetail />
+                <LeadDetail user={user} />
               </ProtectedRoute>
             }
           />
@@ -163,17 +172,21 @@ export default function AppRouter({
                 allowedRoles={["admin", "client"]}
                 allowedClientPortalRoles={["admin"]}
               >
-                <Settings user={user} />
+                <Settings user={user} onUserRefresh={onUserRefresh} />
               </ProtectedRoute>
             }
           />
         </Route>
+
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route
           path="*"
           element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />}
         />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
